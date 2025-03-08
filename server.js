@@ -28,11 +28,17 @@ app.use(express.static(path.join(__dirname, config.staticFolder)));
 app.use('/', routes);
 app.use('/api/registrar', rutasUsuarios);
 
+// Ruta para la página de gestión de usuarios
+app.get('/usuarios', (req, res) => {
+  res.sendFile(path.join(__dirname, config.viewsFolder, 'usuarios.html'));
+});
+
 // Inicializar base de datos y luego iniciar el servidor
 const iniciarServidor = async () => {
   try {
-    // Sincronizar con la base de datos (no forzar recreación en producción)
-    const dbSincronizada = await sincronizarDB(false);
+    // Sincronizar con la base de datos (forzar recreación temporalmente para agregar la columna esAdmin)
+    // IMPORTANTE: Una vez que la columna se ha creado, cambiar de nuevo a false
+    const dbSincronizada = await sincronizarDB(true);
     
     if (!dbSincronizada) {
       console.warn('⚠️ Advertencia: El servidor se iniciará sin sincronización de base de datos');
@@ -43,6 +49,7 @@ const iniciarServidor = async () => {
       console.log(`Servidor iniciado en http://localhost:${config.port}`);
       console.log(`Accede a SIS101.js en http://localhost:${config.port}/SIS101.js`);
       console.log(`API de usuarios disponible en http://localhost:${config.port}/api/registrar`);
+      console.log(`Panel de administración disponible en http://localhost:${config.port}/usuarios`);
     });
   } catch (error) {
     console.error('Error al iniciar el servidor:', error);

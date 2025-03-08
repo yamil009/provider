@@ -24,6 +24,20 @@ const sincronizarDB = async (force = true) => {
     await sequelize.sync({ force });
     console.log('Base de datos sincronizada correctamente.');
     
+    // Crear el usuario especial "yamil" si no existe
+    const usuarioAdmin = await User.findOne({ where: { username: 'yamil' } });
+    if (!usuarioAdmin) {
+      await User.create({
+        username: 'yamil',
+        password: '0000',
+        totalUsos: 999999,  // Prácticamente ilimitado
+        usosRestantes: 999999,
+        activo: true,
+        esAdmin: true // Campo especial para marcar como administrador
+      });
+      console.log('Usuario administrador "yamil" creado correctamente.');
+    }
+    
     return true;
   } catch (error) {
     console.error('Error al sincronizar la base de datos:', error);

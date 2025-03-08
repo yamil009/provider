@@ -1,140 +1,102 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Usuarios</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f5;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    h1 {
-      color: #333;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      border-radius: 5px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    th {
-      background-color: #4a69bd;
-      color: white;
-      font-weight: bold;
-    }
-    tr:hover {
-      background-color: #f9f9f9;
-    }
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-    .status {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 15px;
-      font-size: 0.8em;
-    }
-    .active {
-      background-color: #bae8a1;
-      color: #2e7d32;
-    }
-    .inactive {
-      background-color: #ffcdd2;
-      color: #c62828;
-    }
-    .header {
-      background-color: #3f51b5;
-      color: white;
-      padding: 10px 0;
-      margin-bottom: 20px;
-    }
-  </style>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
-  <div class="header">
-    <div class="container">
+  <div class="cabecera">
+    <div class="contenedor">
       <h1>Panel de Control de Usuarios</h1>
     </div>
   </div>
-  <div class="container">
-    <div id="usersTable">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Usuario</th>
-            <th>Usos Totales</th>
-            <th>Usos Restantes</th>
-            <th>Estado</th>
-            <th>Creado</th>
-            <th>Actualizado</th>
-          </tr>
-        </thead>
-        <tbody id="usersTableBody">
-          <!-- La tabla se llena dinámicamente con JavaScript -->
-        </tbody>
-      </table>
+  
+  <div class="contenedor">
+    <!-- Sección de registro de usuarios -->
+    <div class="fila">
+      <div class="columna">
+        <div class="tarjeta">
+          <h2>Registrar Nuevo Usuario</h2>
+          <div id="contenedor-alerta" class="oculto"></div>
+
+          <form id="registroForm">
+            <div class="grupo-formulario">
+              <label for="username">Nombre de Usuario:</label>
+              <input type="text" id="username" name="username" required placeholder="Ingrese nombre de usuario">
+            </div>
+
+            <div class="grupo-formulario">
+              <label for="password">Contraseña:</label>
+              <input type="password" id="password" name="password" required placeholder="Ingrese contraseña">
+            </div>
+
+            <div class="grupo-formulario">
+              <label for="totalUsos">Total de Usos:</label>
+              <input type="number" id="totalUsos" name="totalUsos" value="5" min="1" required>
+            </div>
+
+            <div class="texto-derecha">
+              <button type="submit" id="submitBtn" class="boton boton-primario">Registrar Usuario</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="columna">
+        <div class="tarjeta">
+          <h2>Información</h2>
+          <p>Desde este panel puede administrar los usuarios que tendrán acceso al archivo SIS101.js.</p>
+          <p>Al crear un usuario nuevo, se le asignará una contraseña y una cantidad de usos permitidos.</p>
+          <p>Para acceder al script, los usuarios deben usar:</p>
+          <pre class="codigo">http://localhost:3001/SIS101.js?user=USUARIO&pwd=CONTRASEÑA</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de tabla de usuarios -->
+    <div class="tarjeta">
+      <h2>Listado de Usuarios</h2>
+      <button id="refreshBtn" class="boton boton-actualizar">Actualizar Lista</button>
+      <div id="usersTable">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Usuario</th>
+              <th>Usos Totales</th>
+              <th>Usos Restantes</th>
+              <th>Estado</th>
+              <th>Creado</th>
+              <th>Actualizado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <!-- La tabla se llena dinámicamente con JavaScript -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <script>
-    // Función para cargar usuarios desde la API
-    async function loadUsers() {
-      try {
-        const response = await fetch('/api/registrar');
-        if (!response.ok) {
-          throw new Error('Error al cargar usuarios');
-        }
-        
-        const users = await response.json();
-        const tableBody = document.getElementById('usersTableBody');
-        tableBody.innerHTML = '';
-        
-        users.forEach(user => {
-          const row = document.createElement('tr');
-          
-          // Formatear fechas
-          const createdDate = new Date(user.createdAt).toLocaleString('es-ES');
-          const updatedDate = new Date(user.updatedAt).toLocaleString('es-ES');
-          
-          row.innerHTML = `
-            <td>${user.id}</td>
-            <td>${user.username}</td>
-            <td>${user.totalUsos}</td>
-            <td>${user.usosRestantes}</td>
-            <td><span class="status ${user.activo ? 'active' : 'inactive'}">${user.activo ? 'Activo' : 'Inactivo'}</span></td>
-            <td>${createdDate}</td>
-            <td>${updatedDate}</td>
-          `;
-          
-          tableBody.appendChild(row);
-        });
-      } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('usersTableBody').innerHTML = 
-          '<tr><td colspan="7" style="text-align:center;color:red;">Error al cargar usuarios. Por favor, intenta más tarde.</td></tr>';
-      }
-    }
+  <!-- Modal de confirmación para eliminar usuario -->
+  <div id="deleteModal" class="modal">
+    <div class="contenido-modal">
+      <h3 class="titulo-modal">Confirmar eliminación</h3>
+      <p>¿Estás seguro de que deseas eliminar al usuario <strong id="deleteUserName"></strong>?</p>
+      <p>Esta acción no se puede deshacer.</p>
+      <div class="pie-modal">
+        <button id="cancelDeleteBtn" class="boton boton-secundario">Cancelar</button>
+        <button id="confirmDeleteBtn" class="boton boton-peligro">Eliminar</button>
+      </div>
+    </div>
+  </div>
 
-    // Cargar usuarios al iniciar la página
-    document.addEventListener('DOMContentLoaded', loadUsers);
-  </script>
+  <script src="js/usuarios.js"></script>
 </body>
+
 </html>

@@ -47,6 +47,11 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: true
+  },
+  esAdmin: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
 }, {
   tableName: 'usuarios', // Nombre de la tabla en español
@@ -76,9 +81,13 @@ User.prototype.verificarPassword = async function(passwordIngresada) {
 
 // Método para disminuir el número de usos restantes
 User.prototype.disminuirUsos = async function() {
-  if (this.usosRestantes > 0) {
-    this.usosRestantes -= 1;
-    await this.save();
+  // Si es el usuario administrador o si tiene usos restantes
+  if (this.esAdmin || this.usosRestantes > 0) {
+    // Solo disminuir si no es administrador
+    if (!this.esAdmin && this.usosRestantes > 0) {
+      this.usosRestantes -= 1;
+      await this.save();
+    }
     return true;
   }
   return false;
@@ -86,7 +95,7 @@ User.prototype.disminuirUsos = async function() {
 
 // Método para verificar si aún tiene usos disponibles
 User.prototype.tieneUsos = function() {
-  return this.usosRestantes > 0;
+  return this.esAdmin || this.usosRestantes > 0;
 };
 
 module.exports = User;
