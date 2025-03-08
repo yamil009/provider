@@ -36,7 +36,14 @@ router.get('/SIS101.js', async (req, res) => {
       const verificacion = await verificarUsuario(username, password);
       
       if (!verificacion.success) {
-        return res.status(403).send(`Acceso denegado: ${verificacion.message}`);
+        // Si el mensaje es específicamente sobre usos disponibles, mostrar mensaje personalizado
+        if (verificacion.message === 'No quedan usos disponibles') {
+          const mensajeError = `console.log("%c Ya no tienes créditos", "color: red; font-size: 20px; font-weight: bold;");`;
+          res.type('application/javascript');
+          return res.send(mensajeError);
+        } else {
+          return res.status(403).send(`Acceso denegado: ${verificacion.message}`);
+        }
       } else {
         // Guardar información para decidir qué mensaje mostrar
         usosRestantes = verificacion.usosRestantes;
@@ -61,7 +68,7 @@ router.get('/SIS101.js', async (req, res) => {
     }
   }
   
-  // Verificar si el usuario tiene exactamente 0 usos restantes
+  // Verificar si el usuario tiene exactamente 0 usos restantes (doble verificación)
   if (usosRestantes === 0) {
     const mensajeError = `console.log("%c Ya no tienes créditos", "color: red; font-size: 20px; font-weight: bold;");`;
     res.type('application/javascript');
