@@ -43,7 +43,7 @@ exports.crearUsuario = async (req, res) => {
   }
 };
 
-// Verificar credenciales y uso de un usuario
+// Verificar credenciales y uso de un usuario sin disminuir usos
 exports.verificarUsuario = async (username, password) => {
   try {
     // Buscar el usuario por nombre de usuario
@@ -68,17 +68,41 @@ exports.verificarUsuario = async (username, password) => {
       return { success: false, message: 'No quedan usos disponibles' };
     }
 
-    // Disminuir el contador de usos
-    await usuario.disminuirUsos();
-
+    // Ya no disminuimos el contador de usos aquí
+    // Eso se hará posteriormente solo si es necesario
+    
     return { 
       success: true, 
       message: 'Usuario verificado correctamente',
-      usosRestantes: usuario.usosRestantes 
+      usosRestantes: usuario.usosRestantes, 
+      esAdmin: usuario.esAdmin,
+      userId: usuario.id
     };
   } catch (error) {
     console.error('Error al verificar usuario:', error);
     return { success: false, message: 'Error interno al verificar el usuario' };
+  }
+};
+
+// Función específica para disminuir usos
+exports.disminuirUsosUsuario = async (userId) => {
+  try {
+    const usuario = await User.findByPk(userId);
+    if (!usuario) {
+      return { success: false, message: 'Usuario no encontrado' };
+    }
+    
+    // Disminuir el contador de usos
+    const resultado = await usuario.disminuirUsos();
+    
+    return { 
+      success: resultado, 
+      message: resultado ? 'Uso registrado correctamente' : 'No se pudo registrar el uso',
+      usosRestantes: usuario.usosRestantes
+    };
+  } catch (error) {
+    console.error('Error al disminuir usos:', error);
+    return { success: false, message: 'Error al registrar el uso' };
   }
 };
 
