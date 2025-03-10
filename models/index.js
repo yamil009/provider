@@ -10,7 +10,7 @@ const models = {
 };
 
 // Función para sincronizar la base de datos
-const sincronizarDB = async (force = true) => {
+const sincronizarDB = async (force = false) => {
   try {
     // Probar la conexión
     const connected = await testConnection();

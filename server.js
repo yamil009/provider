@@ -36,21 +36,21 @@ app.get('/usuarios', (req, res) => {
 // Inicializar base de datos y luego iniciar el servidor
 const iniciarServidor = async () => {
   try {
-    // Sincronizar con la base de datos (forzar recreación temporalmente para agregar la columna esAdmin)
-    // IMPORTANTE: Una vez que la columna se ha creado, cambiar de nuevo a false
-    const dbSincronizada = await sincronizarDB(true);
+    // Sincronizar con la base de datos (no forzar recreación para mantener los usuarios)
+    // Cambiar a false para evitar borrar los datos cada vez que se reinicia el servidor
+    const dbSincronizada = await sincronizarDB(false);
     
-    if (!dbSincronizada) {
-      console.warn('⚠️ Advertencia: El servidor se iniciará sin sincronización de base de datos');
+    if (dbSincronizada) {
+      // Iniciar el servidor en el puerto configurado
+      app.listen(config.port, config.host, () => {
+        console.log(`Servidor en ejecución en http://${config.host}:${config.port}`);
+        console.log(`Accede a SIS101.js en http://${config.host}:${config.port}/SIS101.js`);
+        console.log(`API de usuarios disponible en http://${config.host}:${config.port}/api/registrar`);
+        console.log(`Panel de administración disponible en http://${config.host}:${config.port}/usuarios`);
+      });
+    } else {
+      console.error('No se pudo iniciar el servidor debido a un problema con la base de datos.');
     }
-    
-    // Iniciar el servidor
-    app.listen(config.port, () => {
-      console.log(`Servidor iniciado en http://localhost:${config.port}`);
-      console.log(`Accede a SIS101.js en http://localhost:${config.port}/SIS101.js`);
-      console.log(`API de usuarios disponible en http://localhost:${config.port}/api/registrar`);
-      console.log(`Panel de administración disponible en http://localhost:${config.port}/usuarios`);
-    });
   } catch (error) {
     console.error('Error al iniciar el servidor:', error);
   }
