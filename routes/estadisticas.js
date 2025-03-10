@@ -20,9 +20,7 @@ router.get('/uso-diario/:dias', async (req, res) => {
       attributes: [
         [
           // Formatear la fecha como YYYY-MM-DD para agrupar por día
-          // Nota: La sintaxis exacta puede variar según la base de datos
-          // Esta es genérica y puede necesitar ajustes
-          Acceso.sequelize.literal('DATE(createdAt)'), 
+          Acceso.sequelize.fn('DATE', Acceso.sequelize.col('fechaAcceso')),
           'fecha'
         ],
         [
@@ -32,12 +30,12 @@ router.get('/uso-diario/:dias', async (req, res) => {
         ]
       ],
       where: {
-        createdAt: {
+        fechaAcceso: {
           [Op.gte]: fechaInicio
         }
       },
-      group: ['fecha'],
-      order: [[Acceso.sequelize.literal('fecha'), 'ASC']]
+      group: [Acceso.sequelize.fn('DATE', Acceso.sequelize.col('fechaAcceso'))],
+      order: [[Acceso.sequelize.fn('DATE', Acceso.sequelize.col('fechaAcceso')), 'ASC']]
     });
     
     // Formatear resultados para el gráfico
