@@ -114,3 +114,28 @@ exports.obtenerEstadisticas = async (req, res) => {
     return res.status(500).json({ error: 'Error al obtener estadísticas' });
   }
 };
+
+/**
+ * Eliminar todos los registros de acceso
+ */
+exports.eliminarTodosAccesos = async (req, res) => {
+  try {
+    // Eliminar todos los registros de la tabla de accesos
+    await Acceso.destroy({
+      where: {},
+      truncate: true
+    });
+    
+    return res.status(200).json({ 
+      mensaje: 'Todos los registros de acceso han sido eliminados exitosamente',
+      eliminados: true 
+    });
+    
+  } catch (error) {
+    console.error('Error al eliminar registros de acceso:', error);
+    return res.status(500).json({ 
+      error: 'Error al eliminar los registros de acceso',
+      detalles: error.message
+    });
+  }
+};

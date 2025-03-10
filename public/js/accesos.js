@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnLimpiar').addEventListener('click', limpiarFiltros);
   document.getElementById('btnAnterior').addEventListener('click', () => cambiarPagina(paginaActual - 1));
   document.getElementById('btnSiguiente').addEventListener('click', () => cambiarPagina(paginaActual + 1));
+  document.getElementById('btnBorrarTodos').addEventListener('click', confirmarBorrarTodosAccesos);
   
   // Inicializar controladores para los gráficos
   inicializarControlesGraficos();
@@ -361,6 +362,45 @@ function limpiarFiltros() {
   filtros = {};
   paginaActual = 1;
   cargarAccesos();
+}
+
+// Función para confirmar y borrar todos los accesos
+function confirmarBorrarTodosAccesos() {
+  if (confirm('¿Estás seguro de que deseas eliminar TODOS los registros de acceso? Esta acción no se puede deshacer.')) {
+    borrarTodosAccesos();
+  }
+}
+
+// Función para borrar todos los accesos
+async function borrarTodosAccesos() {
+  try {
+    const response = await fetch('/api/accesos/eliminar-todos', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error al eliminar registros');
+    }
+    
+    const data = await response.json();
+    
+    if (data.eliminados) {
+      mostrarExito('Todos los registros de acceso han sido eliminados exitosamente');
+      
+      // Recargar datos
+      cargarEstadisticas();
+      cargarAccesos();
+      cargarDatosGraficos('7');
+      cargarDatosUsuariosActivos('top5');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    mostrarError(`Error: ${error.message}`);
+  }
 }
 
 // Utilidades

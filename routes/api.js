@@ -3,7 +3,7 @@
  */
 const express = require('express');
 const { crearUsuario, obtenerUsuarios, eliminarUsuario, aumentarUsos, actualizarUsuario } = require('../controllers/usuarioController');
-const { obtenerAccesos, obtenerEstadisticas } = require('../controllers/accesoController');
+const { obtenerAccesos, obtenerEstadisticas, eliminarTodosAccesos } = require('../controllers/accesoController');
 
 const router = express.Router();
 
@@ -17,5 +17,6 @@ router.put('/registrar/:id', actualizarUsuario);
 // Rutas de accesos
 router.get('/accesos', obtenerAccesos);
 router.get('/accesos/estadisticas', obtenerEstadisticas);
+router.delete('/accesos/eliminar-todos', eliminarTodosAccesos);
 
 module.exports = router;
