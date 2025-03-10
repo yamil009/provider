@@ -9,6 +9,7 @@ const config = require('./config/config');
 const routes = require('./routes/index');
 const rutasUsuarios = require('./routes/users');
 const rutasAPI = require('./routes/api');
+const rutasEstadisticas = require('./routes/estadisticas');
 const { sincronizarDB } = require('./models');
 const bodyParser = require('body-parser');
 
@@ -29,6 +30,7 @@ app.use(express.static(path.join(__dirname, config.staticFolder)));
 app.use('/', routes);
 app.use('/api', rutasAPI); 
 app.use('/api/registrar', rutasUsuarios);
+app.use('/api/estadisticas', rutasEstadisticas);
 
 // Ruta para la página de gestión de usuarios
 app.get('/usuarios', (req, res) => {

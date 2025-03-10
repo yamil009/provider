@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Historial de Accesos</title>
   <link rel="stylesheet" href="css/styles.css">
+  <!-- Añadir Chart.js para los gráficos estadísticos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Estilos adicionales para la página de accesos */
     .filtros {
@@ -50,13 +52,65 @@
       color: var(--color-texto-oscuro);
     }
     
-    .indicador .descripcion {
-      color: var(--color-texto-claro);
-      font-size: 0.9rem;
+    /* Estilos para la sección de gráficos */
+    .graficos {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
     }
     
-    .tabla-accesos {
-      overflow-x: auto;
+    @media (min-width: 992px) {
+      .graficos {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    .grafico-container {
+      background-color: var(--color-fondo-tarjeta);
+      border-radius: var(--radio-borde);
+      padding: 20px;
+      box-shadow: var(--sombra-suave);
+      border: 1px solid rgba(133, 59, 206, 0.2);
+    }
+    
+    .grafico-titulo {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+      color: var(--color-texto-oscuro);
+      text-align: center;
+    }
+    
+    .grafico-canvas-container {
+      position: relative;
+      height: 300px;
+    }
+    
+    .controles-grafico {
+      display: flex;
+      justify-content: center;
+      margin-top: 15px;
+      gap: 10px;
+    }
+    
+    .periodo-btn {
+      background-color: var(--color-fondo);
+      color: var(--color-texto-claro);
+      border: 1px solid rgba(133, 59, 206, 0.3);
+      border-radius: 4px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .periodo-btn.activo {
+      background-color: var(--color-primario);
+      color: white;
+    }
+    
+    .periodo-btn:hover:not(.activo) {
+      background-color: rgba(133, 59, 206, 0.1);
     }
     
     .estado-acceso {
@@ -131,6 +185,34 @@
         <h3>Usuarios Únicos</h3>
         <div class="numero" id="usuariosUnicos">-</div>
         <div class="descripcion">Que han accedido</div>
+      </div>
+    </div>
+    
+    <!-- Sección de gráficos estadísticos -->
+    <div class="graficos">
+      <!-- Gráfico de uso diario -->
+      <div class="grafico-container">
+        <h3 class="grafico-titulo">Uso Diario</h3>
+        <div class="grafico-canvas-container">
+          <canvas id="graficoUsoDiario"></canvas>
+        </div>
+        <div class="controles-grafico">
+          <button class="periodo-btn activo" data-periodo="7">7 días</button>
+          <button class="periodo-btn" data-periodo="15">15 días</button>
+          <button class="periodo-btn" data-periodo="30">30 días</button>
+        </div>
+      </div>
+      
+      <!-- Gráfico de usuarios más activos -->
+      <div class="grafico-container">
+        <h3 class="grafico-titulo">Usuarios Más Activos</h3>
+        <div class="grafico-canvas-container">
+          <canvas id="graficoUsuariosActivos"></canvas>
+        </div>
+        <div class="controles-grafico">
+          <button class="periodo-btn activo" data-periodo="top5">Top 5</button>
+          <button class="periodo-btn" data-periodo="top10">Top 10</button>
+        </div>
       </div>
     </div>
     
