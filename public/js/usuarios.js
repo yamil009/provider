@@ -40,13 +40,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Función para mostrar alertas
 function mostrarAlerta(mensaje, tipo) {
-  const alertContainer = document.getElementById('contenedor-alerta');
-  alertContainer.innerHTML = mensaje;
-  alertContainer.className = `alerta alerta-${tipo}`;
+  // Eliminar alertas anteriores que puedan existir
+  const alertasAnteriores = document.querySelectorAll('.alerta');
+  alertasAnteriores.forEach(alerta => {
+    document.body.removeChild(alerta);
+  });
   
-  // Ocultar el mensaje después de 5 segundos
+  // Crear una nueva alerta
+  const alertaElement = document.createElement('div');
+  alertaElement.className = `alerta alerta-${tipo}`;
+  alertaElement.innerHTML = mensaje;
+  
+  // Añadir al body en lugar de usar el contenedor
+  document.body.appendChild(alertaElement);
+  
+  // Ocultar el mensaje después de 5 segundos (aunque la animación lo hará)
   setTimeout(() => {
-    alertContainer.className = 'oculto';
+    if (alertaElement.parentNode) {
+      document.body.removeChild(alertaElement);
+    }
   }, 5000);
 }
 

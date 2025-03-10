@@ -167,6 +167,47 @@ function formatearNumero(numero) {
 }
 
 function mostrarError(mensaje) {
-  // Implementar según el estilo de la aplicación
-  console.error(mensaje);
+  // Eliminar alertas anteriores que puedan existir
+  const alertasAnteriores = document.querySelectorAll('.alerta');
+  alertasAnteriores.forEach(alerta => {
+    document.body.removeChild(alerta);
+  });
+  
+  // Crear una nueva alerta
+  const alertaElement = document.createElement('div');
+  alertaElement.className = `alerta alerta-error`;
+  alertaElement.innerHTML = mensaje;
+  
+  // Añadir al body en lugar de usar el contenedor
+  document.body.appendChild(alertaElement);
+  
+  // Ocultar el mensaje después de 5 segundos (aunque la animación lo hará)
+  setTimeout(() => {
+    if (alertaElement.parentNode) {
+      document.body.removeChild(alertaElement);
+    }
+  }, 5000);
+}
+
+function mostrarExito(mensaje) {
+  // Eliminar alertas anteriores que puedan existir
+  const alertasAnteriores = document.querySelectorAll('.alerta');
+  alertasAnteriores.forEach(alerta => {
+    document.body.removeChild(alerta);
+  });
+  
+  // Crear una nueva alerta
+  const alertaElement = document.createElement('div');
+  alertaElement.className = `alerta alerta-exito`;
+  alertaElement.innerHTML = mensaje;
+  
+  // Añadir al body en lugar de usar el contenedor
+  document.body.appendChild(alertaElement);
+  
+  // Ocultar el mensaje después de 5 segundos (aunque la animación lo hará)
+  setTimeout(() => {
+    if (alertaElement.parentNode) {
+      document.body.removeChild(alertaElement);
+    }
+  }, 5000);
 }
