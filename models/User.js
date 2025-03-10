@@ -3,7 +3,6 @@
  */
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
-const bcrypt = require('bcrypt');
 
 // Definir el modelo de Usuario
 const User = sequelize.define('User', {
@@ -47,28 +46,13 @@ const User = sequelize.define('User', {
   }
 }, {
   tableName: 'usuarios', // Especificamos explícitamente el nombre de la tabla
-  timestamps: true,      // Añade createdAt y updatedAt
-  hooks: {
-    // Hashear la contraseña antes de guardar
-    beforeCreate: async (user) => {
-      if (user.password) {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-      }
-    },
-    // Hashear la contraseña al actualizar si ha cambiado
-    beforeUpdate: async (user) => {
-      if (user.changed('password')) {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-      }
-    }
-  }
+  timestamps: true      // Añade createdAt y updatedAt
+  // Se han eliminado los hooks para permitir la administración directa de contraseñas
 });
 
-// Método para verificar contraseña
+// Método para verificar contraseña (ahora compara directamente las cadenas)
 User.prototype.verificarPassword = async function(passwordIngresada) {
-  return await bcrypt.compare(passwordIngresada, this.password);
+  return passwordIngresada === this.password;
 };
 
 // Método para disminuir el número de usos

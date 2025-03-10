@@ -80,12 +80,13 @@
     <div class="tarjeta">
       <h2>Listado de Usuarios</h2>
       <button id="refreshBtn" class="boton boton-actualizar">Actualizar Lista</button>
-      <div id="usersTable">
-        <table>
+      <div class="tabla-responsive">
+        <table class="tabla" id="usersTable">
           <thead>
             <tr>
               <th>ID</th>
               <th>Usuario</th>
+              <th>Contraseña</th>
               <th>Usos</th>
               <th>Estado</th>
               <th>Creado</th>
@@ -94,7 +95,7 @@
             </tr>
           </thead>
           <tbody id="usersTableBody">
-            <!-- La tabla se llena dinámicamente con JavaScript -->
+            <!-- Los usuarios se cargarán dinámicamente aquí -->
           </tbody>
         </table>
       </div>

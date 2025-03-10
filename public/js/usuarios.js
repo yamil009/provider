@@ -108,11 +108,9 @@ function mostrarModalEdicion(usuario) {
   
   // Llenar el formulario con los datos actuales
   document.getElementById('editUsername').value = usuario.username;
+  document.getElementById('editPassword').value = usuario.password;
   document.getElementById('editUsos').value = usuario.usos;
   document.getElementById('editActivo').checked = usuario.activo;
-  
-  // Dejar la contraseña en blanco - solo se actualizará si se ingresa algo
-  document.getElementById('editPassword').value = '';
   
   // Mostrar el nombre de usuario en el título
   document.getElementById('editUserTitle').textContent = usuario.username;
@@ -195,11 +193,11 @@ async function handleEditConfirm() {
   if (!editUserId) return;
   
   const username = document.getElementById('editUsername').value.trim();
+  const password = document.getElementById('editPassword').value.trim();
   const usos = parseInt(document.getElementById('editUsos').value);
   const activo = document.getElementById('editActivo').checked;
-  const password = document.getElementById('editPassword').value.trim();
   
-  if (!username || isNaN(usos) || usos <= 0) {
+  if (!username || !password || isNaN(usos) || usos <= 0) {
     mostrarAlerta('Por favor, ingrese todos los campos correctamente', 'error');
     return;
   }
@@ -212,9 +210,9 @@ async function handleEditConfirm() {
       },
       body: JSON.stringify({
         username,
+        password,
         usos,
-        activo,
-        password: password || null // Solo enviar la contraseña si se ha modificado
+        activo
       })
     });
     
@@ -235,14 +233,27 @@ async function handleEditConfirm() {
 // Función para cargar usuarios desde la API
 async function cargarUsuarios() {
   try {
+    // Mostrar mensaje de carga
+    document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="8" class="texto-cargando">Cargando usuarios...</td></tr>';
+    
     const response = await fetch('/api/registrar');
     if (!response.ok) {
       throw new Error('Error al cargar usuarios');
     }
     
     const usuarios = await response.json();
+    
+    // Crear filas para cada usuario
     const tableBody = document.getElementById('usersTableBody');
     tableBody.innerHTML = '';
+    
+    if (usuarios.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="8" class="mensaje-centrado">No hay usuarios registrados</td></tr>';
+      return;
+    }
+    
+    // Ordenar usuarios por ID para mantener el orden consistente
+    usuarios.sort((a, b) => a.id - b.id);
     
     usuarios.forEach(usuario => {
       const row = document.createElement('tr');
@@ -265,6 +276,7 @@ async function cargarUsuarios() {
       row.innerHTML = `
         <td>${usuario.id}</td>
         <td>${usuario.username}${esAdmin ? ' <span class="etiqueta-admin">Admin</span>' : ''}</td>
+        <td>${usuario.password}</td>
         <td>${usos}</td>
         <td><span class="estado ${usuario.activo ? 'activo' : 'inactivo'}">${usuario.activo ? 'Activo' : 'Inactivo'}</span></td>
         <td>${createdDate}</td>
@@ -272,7 +284,8 @@ async function cargarUsuarios() {
         <td>
           <div class="botones-accion">
             ${esAdmin ? 
-              '<button class="boton boton-eliminar" disabled title="No se puede modificar al administrador">Eliminar</button>' : 
+              `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}">Editar</button>
+               <button class="boton boton-eliminar" disabled title="No se puede eliminar al administrador">Eliminar</button>` : 
               `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}">Editar</button>
                <button class="boton boton-eliminar" data-id="${usuario.id}" data-username="${usuario.username}">Eliminar</button>
                <button class="boton boton-recargar" data-id="${usuario.id}" data-username="${usuario.username}">Recargar Usos</button>`}
@@ -317,7 +330,7 @@ async function cargarUsuarios() {
   } catch (error) {
     console.error('Error:', error);
     document.getElementById('usersTableBody').innerHTML = 
-      '<tr><td colspan="7" style="text-align:center;color:var(--color-peligro);">Error al cargar usuarios. Por favor, intenta más tarde.</td></tr>';
+      '<tr><td colspan="8" style="text-align:center;color:var(--color-peligro);">Error al cargar usuarios. Por favor, intenta más tarde.</td></tr>';
   }
 }
 

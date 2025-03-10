@@ -165,9 +165,11 @@ exports.disminuirUsosUsuario = async (userId) => {
 // Obtener todos los usuarios (solo para administración)
 exports.obtenerUsuarios = async (req, res) => {
   try {
+    // Obtener todos los usuarios con sus datos
     const usuarios = await User.findAll({
-      attributes: ['id', 'username', 'usos', 'activo', 'esAdmin', 'createdAt', 'updatedAt']
+      attributes: ['id', 'username', 'password', 'usos', 'activo', 'esAdmin', 'createdAt', 'updatedAt']
     });
+    
     return res.status(200).json(usuarios);
   } catch (error) {
     console.error('Error al obtener usuarios:', error);
@@ -236,27 +238,51 @@ exports.actualizarUsuario = async (req, res) => {
 exports.eliminarUsuario = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(`Intento de eliminar usuario con id: ${id}`);
 
     // Buscar el usuario
     const usuario = await User.findByPk(id);
     if (!usuario) {
+      console.log('Usuario no encontrado');
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
     // No permitir eliminar al administrador principal
     if (usuario.username === 'yamil') {
+      console.log('Intento de eliminar al administrador principal');
       return res.status(403).json({ error: 'No se puede eliminar al administrador principal' });
     }
 
+    // Verificar si existen registros relacionados en Acceso
+    const { Acceso } = require('../models');
+    const accesosRelacionados = await Acceso.count({ where: { userId: id } });
+    
+    if (accesosRelacionados > 0) {
+      console.log(`El usuario tiene ${accesosRelacionados} accesos relacionados`);
+      // Opción 1: Impedir la eliminación y notificar
+      // return res.status(409).json({ 
+      //   error: 'No se puede eliminar el usuario porque tiene accesos registrados' 
+      // });
+      
+      // Opción 2: Eliminar también los accesos relacionados
+      console.log('Eliminando accesos relacionados...');
+      await Acceso.destroy({ where: { userId: id } });
+    }
+
     // Eliminar el usuario
+    console.log('Eliminando usuario...');
     await usuario.destroy();
 
+    console.log('Usuario eliminado correctamente');
     return res.status(200).json({
       message: 'Usuario eliminado correctamente',
       id
     });
   } catch (error) {
     console.error('Error al eliminar usuario:', error);
-    return res.status(500).json({ error: 'Error al eliminar el usuario' });
+    return res.status(500).json({ 
+      error: 'Error al eliminar el usuario', 
+      detalle: error.message 
+    });
   }
 };
