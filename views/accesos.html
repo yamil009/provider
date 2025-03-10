@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historial de Accesos</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Estilos adicionales para la página de accesos */
+    .filtros {
+      background-color: var(--color-fondo-tarjeta);
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: flex-end;
+    }
+    
+    .filtros .grupo-formulario {
+      margin-bottom: 0;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .indicadores {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .indicador {
+      background-color: var(--color-fondo-tarjeta);
+      border-radius: 4px;
+      padding: 15px;
+      text-align: center;
+    }
+    
+    .indicador h3 {
+      margin-top: 0;
+      color: var(--color-primario);
+    }
+    
+    .indicador .numero {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: var(--color-texto-oscuro);
+    }
+    
+    .indicador .descripcion {
+      color: var(--color-texto-claro);
+      font-size: 0.9rem;
+    }
+    
+    .tabla-accesos {
+      overflow-x: auto;
+    }
+    
+    .estado-acceso {
+      display: inline-block;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    
+    .estado-acceso.exito {
+      background-color: var(--color-exito-fondo);
+      color: var(--color-exito);
+    }
+    
+    .estado-acceso.fallo {
+      background-color: var(--color-peligro-fondo);
+      color: var(--color-peligro);
+    }
+    
+    .paginacion {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+    
+    .paginacion .botones {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .paginacion .boton {
+      min-width: 40px;
+      text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+      .indicadores {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="cabecera">
+    <div class="contenedor">
+      <h1>Historial de Accesos</h1>
+      <a href="/usuarios" class="boton boton-secundario">Volver a Usuarios</a>
+    </div>
+  </div>
+  
+  <div class="contenedor">
+    <!-- Indicadores de resumen -->
+    <div class="indicadores">
+      <div class="indicador">
+        <h3>Total Accesos</h3>
+        <div class="numero" id="totalAccesos">-</div>
+        <div class="descripcion">Desde el inicio</div>
+      </div>
+      <div class="indicador">
+        <h3>Accesos Recientes</h3>
+        <div class="numero" id="accesosRecientes">-</div>
+        <div class="descripcion">Últimas 24 horas</div>
+      </div>
+      <div class="indicador">
+        <h3>Usuarios Únicos</h3>
+        <div class="numero" id="usuariosUnicos">-</div>
+        <div class="descripcion">Que han accedido</div>
+      </div>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="filtros">
+      <div class="grupo-formulario">
+        <label for="desde">Desde:</label>
+        <input type="date" id="desde" name="desde">
+      </div>
+      <div class="grupo-formulario">
+        <label for="hasta">Hasta:</label>
+        <input type="date" id="hasta" name="hasta">
+      </div>
+      <div class="grupo-formulario">
+        <label for="usuario">Usuario:</label>
+        <input type="text" id="usuario" name="usuario" placeholder="Nombre de usuario">
+      </div>
+      <div class="grupo-formulario">
+        <button id="btnFiltrar" class="boton boton-primario">Filtrar</button>
+        <button id="btnLimpiar" class="boton boton-secundario">Limpiar</button>
+      </div>
+    </div>
+    
+    <!-- Tabla de accesos -->
+    <div class="tarjeta">
+      <h2>Registro de Accesos</h2>
+      <div class="tabla-accesos">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Usuario</th>
+              <th>Dirección IP</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>User Agent</th>
+            </tr>
+          </thead>
+          <tbody id="accesosTableBody">
+            <!-- La tabla se llena dinámicamente con JavaScript -->
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Paginación -->
+      <div class="paginacion">
+        <div class="info">
+          Mostrando <span id="registrosMostrados">0</span> de <span id="totalRegistros">0</span> registros
+        </div>
+        <div class="botones">
+          <button id="btnAnterior" class="boton boton-secundario" disabled>Anterior</button>
+          <button id="btnSiguiente" class="boton boton-secundario" disabled>Siguiente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/accesos.js"></script>
+</body>
+</html>

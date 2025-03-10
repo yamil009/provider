@@ -27,18 +27,10 @@ const User = sequelize.define('User', {
       notEmpty: true
     }
   },
-  totalUsos: {
+  usos: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: 5, // Número predeterminado de usos totales
-    validate: {
-      min: 0
-    }
-  },
-  usosRestantes: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 5, // Inicialmente igual a totalUsos
+    defaultValue: 5, // Número predeterminado de usos
     validate: {
       min: 0
     }
@@ -54,7 +46,7 @@ const User = sequelize.define('User', {
     defaultValue: false
   }
 }, {
-  tableName: 'usuarios', // Nombre de la tabla en español
+  tableName: 'usuarios', // Especificamos explícitamente el nombre de la tabla
   timestamps: true,      // Añade createdAt y updatedAt
   hooks: {
     // Hashear la contraseña antes de guardar
@@ -79,23 +71,27 @@ User.prototype.verificarPassword = async function(passwordIngresada) {
   return await bcrypt.compare(passwordIngresada, this.password);
 };
 
-// Método para disminuir el número de usos restantes
+// Método para disminuir el número de usos
 User.prototype.disminuirUsos = async function() {
-  // Si es el usuario administrador o si tiene usos restantes
-  if (this.esAdmin || this.usosRestantes > 0) {
-    // Solo disminuir si no es administrador
-    if (!this.esAdmin && this.usosRestantes > 0) {
-      this.usosRestantes -= 1;
-      await this.save();
-    }
+  // No disminuir los usos si es un administrador
+  if (this.esAdmin) {
     return true;
   }
-  return false;
+  
+  // No disminuir si ya no tiene usos disponibles
+  if (this.usos <= 0) {
+    return false;
+  }
+  
+  // Disminuir usos
+  this.usos -= 1;
+  await this.save();
+  return true;
 };
 
 // Método para verificar si aún tiene usos disponibles
 User.prototype.tieneUsos = function() {
-  return this.esAdmin || this.usosRestantes > 0;
+  return this.esAdmin || this.usos > 0;
 };
 
 module.exports = User;

@@ -8,6 +8,7 @@ const cors = require('cors');
 const config = require('./config/config');
 const routes = require('./routes/index');
 const rutasUsuarios = require('./routes/users');
+const rutasAPI = require('./routes/api');
 const { sincronizarDB } = require('./models');
 const bodyParser = require('body-parser');
 
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, config.staticFolder)));
 
 // Registrar las rutas
 app.use('/', routes);
+app.use('/api', rutasAPI); 
 app.use('/api/registrar', rutasUsuarios);
 
 // Ruta para la página de gestión de usuarios
@@ -47,6 +49,7 @@ const iniciarServidor = async () => {
         console.log(`Accede a SIS101.js en http://${config.host}:${config.port}/SIS101.js`);
         console.log(`API de usuarios disponible en http://${config.host}:${config.port}/api/registrar`);
         console.log(`Panel de administración disponible en http://${config.host}:${config.port}/usuarios`);
+        console.log(`Historial de accesos disponible en http://${config.host}:${config.port}/accesos`);
       });
     } else {
       console.error('No se pudo iniciar el servidor debido a un problema con la base de datos.');

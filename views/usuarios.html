@@ -6,6 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Usuarios</title>
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Estilos adicionales para botones de acción */
+    .botones-accion {
+      display: flex;
+      gap: 5px;
+    }
+    .boton-recargar {
+      background-color: #4caf50;
+      color: white;
+    }
+    .boton-recargar:hover {
+      background-color: #45a049;
+    }
+  </style>
 </head>
 
 <body>
@@ -35,8 +49,8 @@
             </div>
 
             <div class="grupo-formulario">
-              <label for="totalUsos">Total de Usos:</label>
-              <input type="number" id="totalUsos" name="totalUsos" value="5" min="1" required>
+              <label for="usos">Usos:</label>
+              <input type="number" id="usos" name="usos" value="5" min="1" required>
             </div>
 
             <div class="texto-derecha">
@@ -67,8 +81,7 @@
             <tr>
               <th>ID</th>
               <th>Usuario</th>
-              <th>Usos Totales</th>
-              <th>Usos Restantes</th>
+              <th>Usos</th>
               <th>Estado</th>
               <th>Creado</th>
               <th>Actualizado</th>
@@ -92,6 +105,24 @@
       <div class="pie-modal">
         <button id="cancelDeleteBtn" class="boton boton-secundario">Cancelar</button>
         <button id="confirmDeleteBtn" class="boton boton-peligro">Eliminar</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal para recargar usos de usuario -->
+  <div id="recargarUsosModal" class="modal">
+    <div class="contenido-modal">
+      <h3 class="titulo-modal">Recargar Usos</h3>
+      <p>Agregar usos para el usuario <strong id="recargarUserName"></strong>:</p>
+      
+      <div class="grupo-formulario">
+        <label for="cantidadUsos">Cantidad de Usos:</label>
+        <input type="number" id="cantidadUsos" name="cantidadUsos" value="5" min="1" required>
+      </div>
+      
+      <div class="pie-modal">
+        <button id="cancelRecargarBtn" class="boton boton-secundario">Cancelar</button>
+        <button id="confirmRecargarBtn" class="boton boton-primario">Confirmar</button>
       </div>
     </div>
   </div>

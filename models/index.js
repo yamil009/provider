@@ -3,10 +3,12 @@
  */
 const { sequelize, testConnection } = require('../config/database');
 const User = require('./User');
+const Acceso = require('./Acceso');
 
 // Exportar todos los modelos
 const models = {
-  User
+  User,
+  Acceso
 };
 
 // Función para sincronizar la base de datos
@@ -30,8 +32,7 @@ const sincronizarDB = async (force = false) => {
       await User.create({
         username: 'yamil',
         password: '0000',
-        totalUsos: 999999,  // Prácticamente ilimitado
-        usosRestantes: 999999,
+        usos: 999999,  // Ahora solo usamos el campo usos
         activo: true,
         esAdmin: true // Campo especial para marcar como administrador
       });

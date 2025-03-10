@@ -1,11 +1,14 @@
 // Variables globales
 let deleteUserId = null;
 let deleteModal;
+let recargarUsosModal;
+let recargarUsosId = null;
 
 // Se ejecuta cuando el DOM está completamente cargado
 document.addEventListener('DOMContentLoaded', () => {
   // Inicializar elementos
   deleteModal = document.getElementById('deleteModal');
+  recargarUsosModal = document.getElementById('recargarUsosModal');
   
   // Registrar eventos
   document.getElementById('registroForm').addEventListener('submit', handleRegistroSubmit);
@@ -13,10 +16,21 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('confirmDeleteBtn').addEventListener('click', handleDeleteConfirm);
   document.getElementById('cancelDeleteBtn').addEventListener('click', cerrarModalEliminacion);
   
-  // Cerrar el modal si se hace clic fuera de él
+  // Eventos para modal de recarga de usos
+  if (document.getElementById('confirmRecargarBtn')) {
+    document.getElementById('confirmRecargarBtn').addEventListener('click', handleRecargarConfirm);
+  }
+  if (document.getElementById('cancelRecargarBtn')) {
+    document.getElementById('cancelRecargarBtn').addEventListener('click', cerrarModalRecarga);
+  }
+  
+  // Cerrar los modales si se hace clic fuera de ellos
   window.addEventListener('click', (event) => {
     if (event.target === deleteModal) {
       cerrarModalEliminacion();
+    }
+    if (event.target === recargarUsosModal) {
+      cerrarModalRecarga();
     }
   });
   
@@ -36,45 +50,87 @@ function mostrarAlerta(mensaje, tipo) {
   }, 5000);
 }
 
-// Función para mostrar el modal de confirmación
+// Función para mostrar el modal de confirmación de eliminación
 function mostrarModalEliminacion(userId, username) {
   deleteUserId = userId;
   document.getElementById('deleteUserName').textContent = username;
   deleteModal.style.display = 'block';
 }
 
-// Función para cerrar el modal
+// Función para cerrar el modal de eliminación
 function cerrarModalEliminacion() {
   deleteModal.style.display = 'none';
   deleteUserId = null;
 }
 
-// Función para eliminar un usuario
-async function eliminarUsuario(userId) {
+// Función para mostrar el modal de recarga de usos
+function mostrarModalRecarga(userId, username) {
+  recargarUsosId = userId;
+  document.getElementById('recargarUserName').textContent = username;
+  document.getElementById('cantidadUsos').value = "5"; // Valor predeterminado
+  recargarUsosModal.style.display = 'block';
+}
+
+// Función para cerrar el modal de recarga
+function cerrarModalRecarga() {
+  recargarUsosModal.style.display = 'none';
+  recargarUsosId = null;
+}
+
+// Manejador de confirmación de eliminación
+async function handleDeleteConfirm() {
+  if (!deleteUserId) return;
+  
   try {
-    const response = await fetch(`/api/registrar/${userId}`, {
+    const response = await fetch(`/api/registrar/${deleteUserId}`, {
       method: 'DELETE'
     });
     
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || 'Error al eliminar usuario');
+      throw new Error('Error al eliminar usuario');
     }
     
-    // Recargar la tabla de usuarios
-    cargarUsuarios();
-    mostrarAlerta('Usuario eliminado correctamente.', 'exito');
+    cerrarModalEliminacion();
+    mostrarAlerta('Usuario eliminado exitosamente', 'exito');
+    cargarUsuarios(); // Actualizar la lista
   } catch (error) {
-    console.error('Error:', error);
     mostrarAlerta(`Error: ${error.message}`, 'error');
   }
 }
 
-// Manejador de confirmación de eliminación
-function handleDeleteConfirm() {
-  if (deleteUserId) {
-    eliminarUsuario(deleteUserId);
-    cerrarModalEliminacion();
+// Manejador de confirmación de recarga de usos
+async function handleRecargarConfirm() {
+  if (!recargarUsosId) return;
+  
+  const cantidadUsos = parseInt(document.getElementById('cantidadUsos').value);
+  
+  if (isNaN(cantidadUsos) || cantidadUsos <= 0) {
+    mostrarAlerta('Por favor, ingrese una cantidad válida de usos', 'error');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/registrar/${recargarUsosId}/aumentar-usos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        cantidad: cantidadUsos
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al recargar usos');
+    }
+    
+    cerrarModalRecarga();
+    mostrarAlerta(data.mensaje || 'Usos recargados exitosamente', 'exito');
+    cargarUsuarios(); // Actualizar la lista
+  } catch (error) {
+    mostrarAlerta(`Error: ${error.message}`, 'error');
   }
 }
 
@@ -101,8 +157,8 @@ async function cargarUsuarios() {
       const esAdmin = usuario.esAdmin === true;
       
       // Personalizar la visualización de usos para usuario administrador
-      const totalUsos = esAdmin ? '∞' : usuario.totalUsos;
-      const usosRestantes = esAdmin ? '∞' : usuario.usosRestantes;
+      // Mostrar usos como valor principal para usuarios normales
+      const usos = esAdmin ? '∞' : usuario.usos;
       
       // Crear la clase para la fila del administrador
       const rowClass = esAdmin ? 'fila-admin' : '';
@@ -111,15 +167,15 @@ async function cargarUsuarios() {
       row.innerHTML = `
         <td>${usuario.id}</td>
         <td>${usuario.username}${esAdmin ? ' <span class="etiqueta-admin">Admin</span>' : ''}</td>
-        <td>${totalUsos}</td>
-        <td>${usosRestantes}</td>
+        <td>${usos}</td>
         <td><span class="estado ${usuario.activo ? 'activo' : 'inactivo'}">${usuario.activo ? 'Activo' : 'Inactivo'}</span></td>
         <td>${createdDate}</td>
         <td>${updatedDate}</td>
         <td>
           ${esAdmin ? 
             '<button class="boton boton-eliminar" disabled title="No se puede eliminar al administrador">Eliminar</button>' : 
-            `<button class="boton boton-eliminar" data-id="${usuario.id}" data-username="${usuario.username}">Eliminar</button>`}
+            `<button class="boton boton-eliminar" data-id="${usuario.id}" data-username="${usuario.username}">Eliminar</button>
+             <button class="boton boton-recargar" data-id="${usuario.id}" data-username="${usuario.username}">Recargar Usos</button>`}
         </td>
       `;
       
@@ -134,10 +190,19 @@ async function cargarUsuarios() {
         mostrarModalEliminacion(userId, username);
       });
     });
+    
+    // Añadir eventos a los botones de recargar usos
+    document.querySelectorAll('.boton-recargar').forEach(button => {
+      button.addEventListener('click', () => {
+        const userId = button.getAttribute('data-id');
+        const username = button.getAttribute('data-username');
+        mostrarModalRecarga(userId, username);
+      });
+    });
   } catch (error) {
     console.error('Error:', error);
     document.getElementById('usersTableBody').innerHTML = 
-      '<tr><td colspan="8" style="text-align:center;color:var(--color-peligro);">Error al cargar usuarios. Por favor, intenta más tarde.</td></tr>';
+      '<tr><td colspan="7" style="text-align:center;color:var(--color-peligro);">Error al cargar usuarios. Por favor, intenta más tarde.</td></tr>';
   }
 }
 
@@ -145,27 +210,32 @@ async function cargarUsuarios() {
 async function handleRegistroSubmit(event) {
   event.preventDefault();
   
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const usos = parseInt(document.getElementById('usos').value);
+  
+  if (!username || !password || isNaN(usos)) {
+    mostrarAlerta('Por favor, completa todos los campos correctamente', 'error');
+    return;
+  }
+  
+  // Deshabilitar el botón mientras se procesa
   const submitBtn = document.getElementById('submitBtn');
+  const originalBtnText = submitBtn.textContent;
   submitBtn.disabled = true;
-  const textoOriginal = submitBtn.textContent;
-  submitBtn.textContent = 'Registrando...';
+  submitBtn.textContent = 'Procesando...';
   
   try {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const totalUsos = parseInt(document.getElementById('totalUsos').value);
-    
-    // Verificar que no se intente crear un usuario llamado "yamil"
-    if (username.toLowerCase() === 'yamil') {
-      throw new Error('No se puede crear otro usuario con el nombre "yamil"');
-    }
-    
     const response = await fetch('/api/registrar', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ username, password, totalUsos })
+      body: JSON.stringify({
+        username,
+        password,
+        usos
+      })
     });
     
     const data = await response.json();
@@ -174,19 +244,18 @@ async function handleRegistroSubmit(event) {
       throw new Error(data.error || 'Error al registrar usuario');
     }
     
-    // Mostrar mensaje de éxito
-    mostrarAlerta(`Usuario <strong>${username}</strong> registrado correctamente.`, 'exito');
+    // Limpiar el formulario
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('usos').value = '5';
     
-    // Limpiar formulario
-    document.getElementById('registroForm').reset();
-    
-    // Recargar la tabla de usuarios
-    cargarUsuarios();
+    mostrarAlerta('Usuario registrado exitosamente', 'exito');
+    cargarUsuarios(); // Actualizar la lista
   } catch (error) {
-    console.error('Error:', error);
     mostrarAlerta(`Error: ${error.message}`, 'error');
   } finally {
+    // Restaurar el botón
     submitBtn.disabled = false;
-    submitBtn.textContent = textoOriginal;
+    submitBtn.textContent = originalBtnText;
   }
 }

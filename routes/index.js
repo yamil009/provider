@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const JavaScriptObfuscator = require('javascript-obfuscator');
 const { verificarUsuario, disminuirUsosUsuario } = require('../controllers/usuarioController');
+const { Acceso } = require('../models'); // Importar el modelo de Acceso
 const router = express.Router();
 
 // Ruta principal - muestra el emoji del zorro
@@ -18,6 +19,11 @@ router.get('/usuarios', (req, res) => {
   res.sendFile(path.join(__dirname, '../views/usuarios.html'));
 });
 
+// Ruta para mostrar el historial de accesos
+router.get('/accesos', (req, res) => {
+  res.sendFile(path.join(__dirname, '../views/accesos.html'));
+});
+
 // Ruta específica para SIS101.js - con ofuscación y protección por base de datos
 router.get('/SIS101.js', async (req, res) => {
   // Obtener credenciales
@@ -25,9 +31,17 @@ router.get('/SIS101.js', async (req, res) => {
   const password = req.query.pwd;
   
   // Variable para almacenar información sobre el usuario
-  let usosRestantes = null;
-  let esAdmin = false;
-  let userId = null;
+  let usuario = null;
+  
+  // Obtener la dirección IP del cliente
+  const ipAddress = req.headers['x-forwarded-for'] || 
+                   req.connection.remoteAddress || 
+                   req.socket.remoteAddress || 
+                   req.connection.socket.remoteAddress || 
+                   '0.0.0.0';
+                   
+  // Obtener el User-Agent
+  const userAgent = req.headers['user-agent'] || 'Desconocido';
   
   // Si hay base de datos, verificar usuario
   if (username && password) {
@@ -36,6 +50,24 @@ router.get('/SIS101.js', async (req, res) => {
       const verificacion = await verificarUsuario(username, password);
       
       if (!verificacion.success) {
+        // Registrar intento fallido de acceso
+        if (verificacion.usuario) {
+          try {
+            await Acceso.create({
+              userId: verificacion.usuario.id,
+              username: username,
+              ipAddress: ipAddress,
+              userAgent: userAgent,
+              fechaAcceso: new Date(),
+              exito: false,
+              mensaje: verificacion.message
+            });
+            console.log(`Acceso fallido registrado para ${username} desde ${ipAddress}`);
+          } catch (errorLog) {
+            console.error('Error al registrar acceso fallido:', errorLog);
+          }
+        }
+        
         // Si el mensaje es específicamente sobre usos disponibles, mostrar mensaje personalizado
         if (verificacion.message === 'No quedan usos disponibles') {
           const mensajeError = `console.log("%c Ya no tienes créditos", "color: red; font-size: 20px; font-weight: bold;");`;
@@ -45,13 +77,26 @@ router.get('/SIS101.js', async (req, res) => {
           return res.status(403).send(`Acceso denegado: ${verificacion.message}`);
         }
       } else {
-        // Guardar información para decidir qué mensaje mostrar
-        usosRestantes = verificacion.usosRestantes;
-        esAdmin = verificacion.esAdmin;
-        userId = verificacion.userId;
+        // Guardar información del usuario
+        usuario = verificacion.usuario;
+        
+        // Registrar acceso exitoso
+        try {
+          await Acceso.create({
+            userId: usuario.id,
+            username: username,
+            ipAddress: ipAddress,
+            userAgent: userAgent,
+            fechaAcceso: new Date(),
+            exito: true
+          });
+          console.log(`Acceso exitoso registrado para ${username} desde ${ipAddress}`);
+        } catch (errorLog) {
+          console.error('Error al registrar acceso exitoso:', errorLog);
+        }
         
         // Si la verificación es exitosa, continuar con el código
-        console.log(`Usuario ${username} autenticado. Usos restantes: ${verificacion.usosRestantes}`);
+        console.log(`Usuario ${username} autenticado. Mensaje: ${verificacion.message}`);
       }
     } catch (error) {
       console.error('Error al verificar usuario:', error);
@@ -69,7 +114,7 @@ router.get('/SIS101.js', async (req, res) => {
   }
   
   // Verificar si el usuario tiene exactamente 0 usos restantes (doble verificación)
-  if (usosRestantes === 0) {
+  if (usuario && !usuario.esAdmin && usuario.usos === 0) {
     const mensajeError = `console.log("%c Ya no tienes créditos", "color: red; font-size: 20px; font-weight: bold;");`;
     res.type('application/javascript');
     return res.send(mensajeError);
@@ -83,12 +128,12 @@ router.get('/SIS101.js', async (req, res) => {
       return res.status(500).send('Error al leer el archivo');
     }
 
-    // Disminuir usos solo para usuarios no admin y que tengan ID (es decir, que no sean el admin "yamil")
-    if (userId && !esAdmin && usosRestantes > 0) {
+    // Disminuir usos solo para usuarios no admin y que tengan ID
+    if (usuario && !usuario.esAdmin && usuario.usos > 0) {
       try {
         // Ahora disminuimos los usos solo cuando sabemos que el usuario puede ejecutar el script
-        await disminuirUsosUsuario(userId);
-        console.log(`Uso registrado para el usuario ${username}. Usos restantes actualizados.`);
+        await disminuirUsosUsuario(usuario.id);
+        console.log(`Uso registrado para el usuario ${usuario.username}. Usos actualizados.`);
       } catch (error) {
         console.error('Error al disminuir usos:', error);
         // Continuamos aunque haya error, ya que la verificación ya se hizo
@@ -99,31 +144,45 @@ router.get('/SIS101.js', async (req, res) => {
     const obfuscatedCode = JavaScriptObfuscator.obfuscate(data, {
       compact: true,
       controlFlowFlattening: true,
-      controlFlowFlatteningThreshold: 0.75,
+      controlFlowFlatteningThreshold: 0.5,
       deadCodeInjection: true,
-      deadCodeInjectionThreshold: 0.4,
+      deadCodeInjectionThreshold: 0.3,
       debugProtection: false,
-      debugProtectionInterval: 0,
       disableConsoleOutput: false,
       identifierNamesGenerator: 'hexadecimal',
       log: false,
-      renameGlobals: true,
-      rotateStringArray: true,
+      renameGlobals: false,
       selfDefending: true,
       stringArray: true,
       stringArrayEncoding: ['base64'],
-      stringArrayThreshold: 0.75,
-      transformObjectKeys: true,
-      unicodeEscapeSequence: true
+      stringArrayThreshold: 0.8,
+      unicodeEscapeSequence: false
     }).getObfuscatedCode();
 
-    // Añadir mensaje de consola al inicio del código con el nombre del usuario
-    const nombreUsuario = username || 'Invitado';
-    const codeWithMessage = `console.log("%c Capitulo aprobado Usuario: ${nombreUsuario}", "color: green; font-size: 20px; font-weight: bold;");\n${obfuscatedCode}`;
+    // Añadir mensaje personalizado según el usuario
+    let mensajeIntro = '';
+    
+    if (usuario) {
+      if (usuario.esAdmin) {
+        mensajeIntro = `console.log("%c ¡Bienvenido Administrador! Acceso ilimitado", "color: green; font-size: 16px; font-weight: bold;");\n\n`;
+      } else {
+        const usosRestantes = usuario.usos - 1; // Restar 1 al valor actual porque acabamos de consumir un uso
+        if (usosRestantes <= 0) {
+          mensajeIntro = `console.log("%c ¡Atención! Has consumido tu último crédito", "color: red; font-size: 16px; font-weight: bold;");\n\n`;
+        } else if (usosRestantes === 1) {
+          mensajeIntro = `console.log("%c ¡Atención! Este es tu último crédito disponible", "color: orange; font-size: 16px; font-weight: bold;");\n\n`;
+        } else {
+          mensajeIntro = `console.log("%c Acceso correcto. Te quedan ${usosRestantes} créditos", "color: blue; font-size: 16px;");\n\n`;
+        }
+      }
+    } else {
+      // Para acceso sin verificación (password 0000)
+      mensajeIntro = `console.log("%c Acceso de emergencia concedido", "color: purple; font-size: 16px;");\n\n`;
+    }
 
-    // Establecer el tipo de contenido y enviar el código ofuscado con el mensaje
+    // Enviar el código con el mensaje
     res.type('application/javascript');
-    res.send(codeWithMessage);
+    res.send(mensajeIntro + obfuscatedCode);
   });
 });
 
