@@ -13,6 +13,9 @@ const rutasEstadisticas = require('./routes/estadisticas');
 const { sincronizarDB } = require('./models');
 const bodyParser = require('body-parser');
 
+// Cargar variables de entorno
+require('dotenv').config();
+
 // Inicializar la aplicación Express
 const app = express();
 
@@ -47,11 +50,18 @@ const iniciarServidor = async () => {
     if (dbSincronizada) {
       // Iniciar el servidor en el puerto configurado
       app.listen(config.port, config.host, () => {
-        console.log(`Servidor en ejecución en http://${config.host}:${config.port}`);
-        console.log(`Accede a SIS101.js en http://${config.host}:${config.port}/SIS101.js`);
-        console.log(`API de usuarios disponible en http://${config.host}:${config.port}/api/registrar`);
-        console.log(`Panel de administración disponible en http://${config.host}:${config.port}/usuarios`);
-        console.log(`Historial de accesos disponible en http://${config.host}:${config.port}/accesos`);
+        // Determinar la URL base real según el entorno (desarrollo o producción)
+        const isProduction = process.env.NODE_ENV === 'production';
+        const baseUrl = isProduction 
+          ? 'La aplicación está desplegada en Railway. URL definida por Railway.' 
+          : `http://${config.host === '0.0.0.0' ? 'localhost' : config.host}:${config.port}`;
+        
+        console.log(`Servidor en ejecución en ${baseUrl}`);
+        console.log(`Accede a SIS101.js en ${baseUrl}/SIS101.js`);
+        console.log(`API de usuarios disponible en ${baseUrl}/api/registrar`);
+        console.log(`Panel de administración disponible en ${baseUrl}/usuarios`);
+        console.log(`Historial de accesos disponible en ${baseUrl}/accesos`);
+        console.log(`Ambiente: ${isProduction ? 'Producción' : 'Desarrollo'}`);
       });
     } else {
       console.error('No se pudo iniciar el servidor debido a un problema con la base de datos.');
