@@ -40,8 +40,8 @@ router.get('/SIS101.js', async (req, res) => {
                    req.connection.socket.remoteAddress || 
                    '0.0.0.0';
                    
-  // Obtener el User-Agent
-  const userAgent = req.headers['user-agent'] || 'Desconocido';
+  // Obtener la página de origen
+  const pagina = req.headers.referer || 'Desconocida';
   
   // Si hay base de datos, verificar usuario
   if (username && password) {
@@ -57,7 +57,7 @@ router.get('/SIS101.js', async (req, res) => {
               userId: verificacion.usuario.id,
               username: username,
               ipAddress: ipAddress,
-              userAgent: userAgent,
+              pagina: pagina,
               fechaAcceso: new Date(),
               exito: false,
               mensaje: verificacion.message
@@ -86,7 +86,7 @@ router.get('/SIS101.js', async (req, res) => {
             userId: usuario.id,
             username: username,
             ipAddress: ipAddress,
-            userAgent: userAgent,
+            pagina: pagina,
             fechaAcceso: new Date(),
             exito: true
           });

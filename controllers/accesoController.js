@@ -40,7 +40,7 @@ exports.obtenerAccesos = async (req, res) => {
     }
     
     if (usuario) {
-      filtros.usuario = usuario;
+      filtros.username = usuario;
     }
     
     if (Object.keys(filtros).length > 0) {

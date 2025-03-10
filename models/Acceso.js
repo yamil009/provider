@@ -28,9 +28,10 @@ const Acceso = sequelize.define('Acceso', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  userAgent: {
-    type: DataTypes.TEXT,
-    allowNull: true
+  pagina: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: 'Desconocida'
   },
   fechaAcceso: {
     type: DataTypes.DATE,

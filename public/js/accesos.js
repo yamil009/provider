@@ -289,10 +289,11 @@ function renderizarTablaAccesos(accesos) {
     const estadoClase = acceso.exito ? 'exito' : 'fallo';
     const estadoTexto = acceso.exito ? 'Exitoso' : 'Fallido';
     
-    // Truncar el user agent para que no sea demasiado largo
-    const userAgent = acceso.userAgent.length > 50 
-      ? acceso.userAgent.substring(0, 50) + '...' 
-      : acceso.userAgent;
+    // Truncar la página si es demasiado larga
+    const paginaUrl = acceso.pagina || 'Desconocida';
+    const pagina = paginaUrl.length > 50 
+      ? paginaUrl.substring(0, 50) + '...' 
+      : paginaUrl;
     
     row.innerHTML = `
       <td>${acceso.id}</td>
@@ -300,7 +301,7 @@ function renderizarTablaAccesos(accesos) {
       <td>${acceso.ipAddress}</td>
       <td>${fecha}</td>
       <td><span class="estado-acceso ${estadoClase}">${estadoTexto}</span></td>
-      <td title="${acceso.userAgent}">${userAgent}</td>
+      <td title="${paginaUrl}">${pagina}</td>
     `;
     
     tbody.appendChild(row);
