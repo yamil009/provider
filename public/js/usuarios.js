@@ -79,7 +79,6 @@ function cerrarModalEliminacion() {
 function mostrarModalRecarga(userId, username) {
   recargarUsosId = userId;
   document.getElementById('recargarUserName').textContent = username;
-  document.getElementById('cantidadUsos').value = "5"; // Valor predeterminado
   recargarUsosModal.style.display = 'block';
 }
 
