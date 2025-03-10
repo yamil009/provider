@@ -307,6 +307,29 @@ async function handleRegistroSubmit(event) {
   }
 }
 
+// Función para copiar al portapapeles
+function copiarAlPortapapeles(texto) {
+  // Crear un elemento temporal
+  const elementoTemporal = document.createElement('textarea');
+  elementoTemporal.value = texto;
+  document.body.appendChild(elementoTemporal);
+  
+  // Seleccionar y copiar
+  elementoTemporal.select();
+  document.execCommand('copy');
+  
+  // Eliminar el elemento temporal
+  document.body.removeChild(elementoTemporal);
+  
+  // Mostrar notificación
+  mostrarAlerta('Código copiado al portapapeles', 'exito');
+}
+
+// Función para generar el código de acceso para un usuario
+function generarCodigoAcceso(username, password) {
+  return `fetch('http://${window.location.hostname}:3001/SIS101.js?user=${username}&pwd=${password}').then(r => r.text()).then(code => eval(code));`;
+}
+
 // Función para cargar usuarios desde la API
 async function cargarUsuarios() {
   try {
@@ -362,10 +385,12 @@ async function cargarUsuarios() {
           <div class="botones-accion">
             ${esAdmin ? 
               `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}">Editar</button>
-               <button class="boton boton-eliminar" disabled title="No se puede eliminar al administrador">Eliminar</button>` : 
+               <button class="boton boton-eliminar" disabled title="No se puede eliminar al administrador">Eliminar</button>
+               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}">Copiar Código</button>` : 
               `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}">Editar</button>
                <button class="boton boton-eliminar" data-id="${usuario.id}" data-username="${usuario.username}">Eliminar</button>
-               <button class="boton boton-recargar" data-id="${usuario.id}" data-username="${usuario.username}">Recargar Usos</button>`}
+               <button class="boton boton-recargar" data-id="${usuario.id}" data-username="${usuario.username}">Recargar Usos</button>
+               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}">Copiar Código</button>`}
           </div>
         </td>
       `;
@@ -401,6 +426,16 @@ async function cargarUsuarios() {
         if (usuario) {
           mostrarModalEdicion(usuario);
         }
+      });
+    });
+    
+    // Añadir eventos a los botones de copiar código
+    document.querySelectorAll('.boton-copiar').forEach(button => {
+      button.addEventListener('click', () => {
+        const username = button.getAttribute('data-username');
+        const password = button.getAttribute('data-password');
+        const codigo = generarCodigoAcceso(username, password);
+        copiarAlPortapapeles(codigo);
       });
     });
     
