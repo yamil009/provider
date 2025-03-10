@@ -3,12 +3,15 @@ let deleteUserId = null;
 let deleteModal;
 let recargarUsosModal;
 let recargarUsosId = null;
+let editUserId = null;
+let editModal;
 
 // Se ejecuta cuando el DOM está completamente cargado
 document.addEventListener('DOMContentLoaded', () => {
   // Inicializar elementos
   deleteModal = document.getElementById('deleteModal');
   recargarUsosModal = document.getElementById('recargarUsosModal');
+  editModal = document.getElementById('editModal');
   
   // Registrar eventos
   document.getElementById('registroForm').addEventListener('submit', handleRegistroSubmit);
@@ -24,6 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cancelRecargarBtn').addEventListener('click', cerrarModalRecarga);
   }
   
+  // Eventos para modal de edición
+  if (document.getElementById('confirmEditBtn')) {
+    document.getElementById('confirmEditBtn').addEventListener('click', handleEditConfirm);
+  }
+  if (document.getElementById('cancelEditBtn')) {
+    document.getElementById('cancelEditBtn').addEventListener('click', cerrarModalEdicion);
+  }
+  
   // Cerrar los modales si se hace clic fuera de ellos
   window.addEventListener('click', (event) => {
     if (event.target === deleteModal) {
@@ -31,6 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (event.target === recargarUsosModal) {
       cerrarModalRecarga();
+    }
+    if (event.target === editModal) {
+      cerrarModalEdicion();
     }
   });
   
@@ -86,6 +100,37 @@ function mostrarModalRecarga(userId, username) {
 function cerrarModalRecarga() {
   recargarUsosModal.style.display = 'none';
   recargarUsosId = null;
+}
+
+// Función para mostrar el modal de edición
+function mostrarModalEdicion(usuario) {
+  editUserId = usuario.id;
+  
+  // Llenar el formulario con los datos actuales
+  document.getElementById('editUsername').value = usuario.username;
+  document.getElementById('editUsos').value = usuario.usos;
+  document.getElementById('editActivo').checked = usuario.activo;
+  
+  // Dejar la contraseña en blanco - solo se actualizará si se ingresa algo
+  document.getElementById('editPassword').value = '';
+  
+  // Mostrar el nombre de usuario en el título
+  document.getElementById('editUserTitle').textContent = usuario.username;
+  
+  // Mostrar el modal
+  editModal.style.display = 'block';
+}
+
+// Función para cerrar el modal de edición
+function cerrarModalEdicion() {
+  editModal.style.display = 'none';
+  editUserId = null;
+  
+  // Resetear el formulario si existe
+  const editForm = document.getElementById('editForm');
+  if (editForm) {
+    editForm.reset();
+  }
 }
 
 // Manejador de confirmación de eliminación
@@ -145,6 +190,48 @@ async function handleRecargarConfirm() {
   }
 }
 
+// Manejador de confirmación de edición
+async function handleEditConfirm() {
+  if (!editUserId) return;
+  
+  const username = document.getElementById('editUsername').value.trim();
+  const usos = parseInt(document.getElementById('editUsos').value);
+  const activo = document.getElementById('editActivo').checked;
+  const password = document.getElementById('editPassword').value.trim();
+  
+  if (!username || isNaN(usos) || usos <= 0) {
+    mostrarAlerta('Por favor, ingrese todos los campos correctamente', 'error');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/registrar/${editUserId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username,
+        usos,
+        activo,
+        password: password || null // Solo enviar la contraseña si se ha modificado
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al editar usuario');
+    }
+    
+    cerrarModalEdicion();
+    mostrarAlerta(data.mensaje || 'Usuario editado exitosamente', 'exito');
+    cargarUsuarios(); // Actualizar la lista
+  } catch (error) {
+    mostrarAlerta(`Error: ${error.message}`, 'error');
+  }
+}
+
 // Función para cargar usuarios desde la API
 async function cargarUsuarios() {
   try {
@@ -183,10 +270,13 @@ async function cargarUsuarios() {
         <td>${createdDate}</td>
         <td>${updatedDate}</td>
         <td>
-          ${esAdmin ? 
-            '<button class="boton boton-eliminar" disabled title="No se puede eliminar al administrador">Eliminar</button>' : 
-            `<button class="boton boton-eliminar" data-id="${usuario.id}" data-username="${usuario.username}">Eliminar</button>
-             <button class="boton boton-recargar" data-id="${usuario.id}" data-username="${usuario.username}">Recargar Usos</button>`}
+          <div class="botones-accion">
+            ${esAdmin ? 
+              '<button class="boton boton-eliminar" disabled title="No se puede modificar al administrador">Eliminar</button>' : 
+              `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}">Editar</button>
+               <button class="boton boton-eliminar" data-id="${usuario.id}" data-username="${usuario.username}">Eliminar</button>
+               <button class="boton boton-recargar" data-id="${usuario.id}" data-username="${usuario.username}">Recargar Usos</button>`}
+          </div>
         </td>
       `;
       
@@ -210,6 +300,20 @@ async function cargarUsuarios() {
         mostrarModalRecarga(userId, username);
       });
     });
+    
+    // Añadir eventos a los botones de editar
+    document.querySelectorAll('.boton-editar').forEach(button => {
+      button.addEventListener('click', () => {
+        const userId = button.getAttribute('data-id');
+        
+        // Obtener los datos completos del usuario para editar
+        const usuario = usuarios.find(u => u.id == userId);
+        if (usuario) {
+          mostrarModalEdicion(usuario);
+        }
+      });
+    });
+    
   } catch (error) {
     console.error('Error:', error);
     document.getElementById('usersTableBody').innerHTML = 

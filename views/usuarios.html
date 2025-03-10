@@ -132,7 +132,44 @@
     </div>
   </div>
 
+  <!-- Modal para editar usuario -->
+  <div id="editModal" class="modal">
+    <div class="contenido-modal">
+      <h3 class="titulo-modal">Editar Usuario: <span id="editUserTitle"></span></h3>
+      
+      <form id="editForm">
+        <div class="grupo-formulario">
+          <label for="editUsername">Nombre de Usuario:</label>
+          <input type="text" id="editUsername" name="editUsername" required>
+        </div>
+
+        <div class="grupo-formulario">
+          <label for="editPassword">Nueva Contraseña (dejar en blanco para mantener actual):</label>
+          <input type="password" id="editPassword" name="editPassword">
+        </div>
+
+        <div class="grupo-formulario">
+          <label for="editUsos">Usos:</label>
+          <input type="number" id="editUsos" name="editUsos" min="0" required>
+        </div>
+
+        <div class="grupo-formulario">
+          <label class="checkbox-label">
+            <input type="checkbox" id="editActivo" name="editActivo">
+            <span>Usuario Activo</span>
+          </label>
+        </div>
+
+        <div class="pie-modal">
+          <button type="button" id="cancelEditBtn" class="boton boton-secundario">Cancelar</button>
+          <button type="submit" class="boton boton-primario">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="js/usuarios.js"></script>
+  <script src="js/editar-usuario.js"></script>
 </body>
 
 </html>
