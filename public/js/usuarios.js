@@ -230,6 +230,83 @@ async function handleEditConfirm() {
   }
 }
 
+// Función para generar una contraseña aleatoria
+function generarContraseñaAleatoria(longitud = 5) {
+  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let contraseña = '';
+  
+  // Asegurar que al menos hay una mayúscula, una minúscula y un número
+  contraseña += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]; // Una mayúscula
+  contraseña += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]; // Una minúscula
+  contraseña += '0123456789'[Math.floor(Math.random() * 10)]; // Un número
+  
+  // Completar el resto de la contraseña aleatoriamente
+  for (let i = 3; i < longitud; i++) {
+    const indiceAleatorio = Math.floor(Math.random() * caracteres.length);
+    contraseña += caracteres.charAt(indiceAleatorio);
+  }
+  
+  // Mezclar los caracteres para que no siempre siga el mismo patrón
+  return contraseña.split('').sort(() => 0.5 - Math.random()).join('');
+}
+
+// Manejador del envío del formulario de registro
+async function handleRegistroSubmit(event) {
+  event.preventDefault();
+  
+  const username = document.getElementById('username').value.trim();
+  const usos = parseInt(document.getElementById('usos').value);
+  
+  if (!username || isNaN(usos) || usos <= 0) {
+    mostrarAlerta('Por favor, completa todos los campos correctamente', 'error');
+    return;
+  }
+  
+  // Generar contraseña aleatoria
+  const password = generarContraseñaAleatoria(5);
+  
+  // Deshabilitar el botón mientras se procesa
+  const submitBtn = document.getElementById('submitBtn');
+  const originalBtnText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Procesando...';
+  
+  try {
+    const response = await fetch('/api/registrar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username,
+        password,
+        usos
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al registrar usuario');
+    }
+    
+    // Mostrar la contraseña generada al usuario
+    mostrarAlerta(`Usuario registrado exitosamente. Contraseña generada: ${password}`, 'exito');
+    
+    // Limpiar el formulario
+    document.getElementById('username').value = '';
+    document.getElementById('usos').value = '5';
+    
+    cargarUsuarios(); // Actualizar la lista
+  } catch (error) {
+    mostrarAlerta(`Error: ${error.message}`, 'error');
+  } finally {
+    // Restaurar el botón
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalBtnText;
+  }
+}
+
 // Función para cargar usuarios desde la API
 async function cargarUsuarios() {
   try {
@@ -331,59 +408,5 @@ async function cargarUsuarios() {
     console.error('Error:', error);
     document.getElementById('usersTableBody').innerHTML = 
       '<tr><td colspan="8" style="text-align:center;color:var(--color-peligro);">Error al cargar usuarios. Por favor, intenta más tarde.</td></tr>';
-  }
-}
-
-// Manejador del envío del formulario de registro
-async function handleRegistroSubmit(event) {
-  event.preventDefault();
-  
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-  const usos = parseInt(document.getElementById('usos').value);
-  
-  if (!username || !password || isNaN(usos)) {
-    mostrarAlerta('Por favor, completa todos los campos correctamente', 'error');
-    return;
-  }
-  
-  // Deshabilitar el botón mientras se procesa
-  const submitBtn = document.getElementById('submitBtn');
-  const originalBtnText = submitBtn.textContent;
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Procesando...';
-  
-  try {
-    const response = await fetch('/api/registrar', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username,
-        password,
-        usos
-      })
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al registrar usuario');
-    }
-    
-    // Limpiar el formulario
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('usos').value = '5';
-    
-    mostrarAlerta('Usuario registrado exitosamente', 'exito');
-    cargarUsuarios(); // Actualizar la lista
-  } catch (error) {
-    mostrarAlerta(`Error: ${error.message}`, 'error');
-  } finally {
-    // Restaurar el botón
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalBtnText;
   }
 }
