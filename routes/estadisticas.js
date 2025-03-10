@@ -77,19 +77,36 @@ router.get('/uso-diario/:dias', async (req, res) => {
 // Obtiene los usuarios más activos (top 5 o top 10)
 router.get('/usuarios-activos/:tipo', async (req, res) => {
   try {
-    const tipo = req.params.tipo || 'top5';
-    const limite = tipo === 'top5' ? 5 : 10;
+    const tipo = req.params.tipo || 'todos';
+    let limite;
     
-    // Consultar los usuarios con más accesos
-    const resultado = await Acceso.findAll({
+    // Determinar el límite según el tipo seleccionado
+    if (tipo === 'top5') {
+      limite = 5;
+    } else if (tipo === 'top10') {
+      limite = 10;
+    } else if (tipo === 'top20') {
+      limite = 20;
+    }
+    // Si es 'todos', no se establece límite
+    
+    // Configurar la consulta base
+    const consultaOpciones = {
       attributes: [
         'username',
         [Acceso.sequelize.fn('COUNT', Acceso.sequelize.col('id')), 'total']
       ],
       group: ['username'],
-      order: [[Acceso.sequelize.literal('total'), 'DESC']],
-      limit: limite
-    });
+      order: [[Acceso.sequelize.literal('total'), 'DESC']]
+    };
+    
+    // Añadir límite solo si no es 'todos'
+    if (limite) {
+      consultaOpciones.limit = limite;
+    }
+    
+    // Consultar los usuarios con más accesos
+    const resultado = await Acceso.findAll(consultaOpciones);
     
     // Formatear resultados para el gráfico
     const labels = [];

@@ -1,5 +1,5 @@
 {
-  "name": "sis101-server",
+  "name": "provider",
   "version": "1.0.0",
   "description": "Servidor para SIS101.js",
   "main": "server.js",

@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarEstadisticas();
   cargarAccesos();
   cargarDatosGraficos('7'); // Cargar gráfico de uso para 7 días por defecto
-  cargarDatosUsuariosActivos('top5'); // Cargar top 5 usuarios por defecto
+  cargarDatosUsuariosActivos('todos'); // Cargar todos los usuarios por defecto
 });
 
 // Función para inicializar los controladores de los botones de los gráficos
@@ -185,6 +185,16 @@ function actualizarGraficoUsuariosActivos(datos) {
     graficoUsuariosActivos.destroy();
   }
   
+  // Configuramos altura dinámica para el gráfico basada en la cantidad de usuarios
+  // Al menos 300px de altura, pero 40px adicionales por cada usuario después de 10
+  const baseHeight = 300;
+  const extraHeightPerUser = 40;
+  const numUsers = datos.labels.length;
+  const minHeight = Math.max(baseHeight, numUsers > 10 ? baseHeight + (numUsers - 10) * extraHeightPerUser : baseHeight);
+  
+  // Ajustar la altura del contenedor del canvas
+  document.querySelector('#graficoUsuariosActivos').parentNode.style.height = `${minHeight}px`;
+  
   // Crear opciones con tema oscuro para que coincida con nuestro diseño
   const options = {
     responsive: true,
@@ -217,7 +227,11 @@ function actualizarGraficoUsuariosActivos(datos) {
           display: false
         },
         ticks: {
-          color: '#ecf0f1'
+          color: '#ecf0f1',
+          // Reducir el tamaño de la fuente si hay muchos usuarios
+          font: {
+            size: numUsers > 15 ? 9 : 12
+          }
         }
       }
     }
