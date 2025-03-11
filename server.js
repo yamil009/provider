@@ -11,9 +11,14 @@ const rutasIndex = require('./routes/index');
 const rutasUsuarios = require('./routes/users');
 const rutasAPI = require('./routes/api');
 const rutasEstadisticas = require('./routes/estadisticas');
+const { sincronizarDB } = require('./models');
 
 // Cargar variables de entorno
 require('dotenv').config();
+
+// Determinar si estamos en Railway
+const isRailway = !!process.env.RAILWAY_SERVICE_NAME;
+const isProduction = process.env.NODE_ENV === 'production' || isRailway;
 
 // Crear aplicación Express
 const app = express();
@@ -37,52 +42,52 @@ app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
+// Fallback para favicon.ico que suele causar errores 502
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'img', 'favicon.ico'));
+});
+
+// Middleware para manejar errores 
+app.use((err, req, res, next) => {
+  console.error('Error en middleware:', err);
+  res.status(500).send('Error interno del servidor');
+});
+
 // Configurar rutas
 app.use('/', rutasIndex);
 app.use('/usuarios', rutasUsuarios);
 app.use('/api', rutasAPI);
-app.use('/api/registrar', rutasUsuarios);
-app.use('/api/estadisticas', rutasEstadisticas);
+app.use('/estadisticas', rutasEstadisticas);
 
-// Ruta para servir vistas HTML
-app.get('/accesos', (req, res) => {
-  res.sendFile(path.join(__dirname, config.viewsFolder, 'accesos.html'));
+// Ruta de fallback para cualquier otra petición
+app.use('*', (req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'views', '404.html'));
 });
 
-// Ruta para la página de gestión de usuarios
-app.get('/usuarios', (req, res) => {
-  res.sendFile(path.join(__dirname, config.viewsFolder, 'usuarios.html'));
-});
+// Determinar el puerto y host en los que escuchar
+const PORT = process.env.PORT || 8080;
+const HOST = process.env.HOST || '0.0.0.0'; // Usar 0.0.0.0 para Railway
 
-// Importar módulos de base de datos
-const { sincronizarDB } = require('./models');
-
-// Iniciar el servidor primero, luego intentar conectar a la base de datos
-const port = process.env.PORT || config.port;
-const host = process.env.HOST || config.host;
-
-// Iniciar el servidor HTTP inmediatamente
-const server = app.listen(port, host, () => {
-  console.log(`Servidor iniciado en puerto ${port} y host ${host}`);
-  
-  // Determinar el entorno
-  const isProduction = process.env.NODE_ENV === 'production';
-  const isRailway = !!process.env.RAILWAY_SERVICE_NAME;
+// Iniciar el servidor
+const server = app.listen(PORT, HOST, () => {
+  console.log(`Servidor iniciado en puerto ${PORT} y host ${HOST}`);
   
   if (isRailway) {
     console.log('Aplicación desplegada en Railway.');
-  } else {
-    const baseUrl = `http://${host === '0.0.0.0' ? 'localhost' : host}:${port}`;
-    console.log(`Accede a SIS101.js en ${baseUrl}/SIS101.js`);
-    console.log(`API de usuarios disponible en ${baseUrl}/api/registrar`);
-    console.log(`Panel de administración disponible en ${baseUrl}/usuarios`);
-    console.log(`Historial de accesos disponible en ${baseUrl}/accesos`);
   }
   
   console.log(`Ambiente: ${isProduction ? 'Producción' : 'Desarrollo'}`);
   
   // Después de iniciar el servidor, intentar configurar la base de datos
   configurarBaseDeDatos();
+});
+
+// Manejar cierre adecuado del servidor
+process.on('SIGTERM', () => {
+  console.log('SIGTERM recibido, cerrando servidor HTTP');
+  server.close(() => {
+    console.log('Servidor HTTP cerrado');
+  });
 });
 
 // Función para configurar la base de datos después de iniciar el servidor
