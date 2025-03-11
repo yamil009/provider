@@ -53,7 +53,7 @@ function inicializarControlesGraficos() {
 // Función para cargar las estadísticas generales
 async function cargarEstadisticas() {
   try {
-    const response = await fetch('/api/accesos/estadisticas');
+    const response = await fetch('/api/estadisticas/resumen');
     if (!response.ok) {
       throw new Error('Error al cargar estadísticas');
     }
@@ -258,7 +258,7 @@ function actualizarGraficoUsuariosActivos(datos) {
 async function cargarAccesos() {
   try {
     // Construir URL con parámetros
-    let url = `/api/accesos?pagina=${paginaActual}&limite=${limitePorPagina}`;
+    let url = `/api/estadisticas/accesos?pagina=${paginaActual}&limite=${limitePorPagina}`;
     
     // Añadir filtros si existen
     if (filtros.desde) url += `&desde=${filtros.desde}`;
@@ -290,7 +290,7 @@ function renderizarTablaAccesos(accesos) {
   tbody.innerHTML = '';
   
   if (accesos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center">No hay registros de acceso</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay registros de acceso</td></tr>';
     return;
   }
   
@@ -304,6 +304,9 @@ function renderizarTablaAccesos(accesos) {
     const estadoClase = acceso.exito ? 'exito' : 'fallo';
     const estadoTexto = acceso.exito ? 'Exitoso' : 'Fallido';
     
+    // Mensaje de error (si existe)
+    const mensajeError = acceso.mensaje || '';
+    
     // Truncar la página si es demasiado larga
     const paginaUrl = acceso.pagina || 'Desconocida';
     const pagina = paginaUrl.length > 50 
@@ -315,7 +318,8 @@ function renderizarTablaAccesos(accesos) {
       <td>${acceso.username}</td>
       <td>${acceso.ipAddress}</td>
       <td>${fecha}</td>
-      <td><span class="estado-acceso ${estadoClase}">${estadoTexto}</span></td>
+      <td><span class="estado-acceso ${estadoClase}" title="${mensajeError}">${estadoTexto}</span></td>
+      <td>${mensajeError}</td>
       <td title="${paginaUrl}">${pagina}</td>
     `;
     
@@ -388,7 +392,7 @@ function confirmarBorrarTodosAccesos() {
 // Función para borrar todos los accesos
 async function borrarTodosAccesos() {
   try {
-    const response = await fetch('/api/accesos/eliminar-todos', {
+    const response = await fetch('/api/estadisticas/accesos', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
@@ -402,7 +406,7 @@ async function borrarTodosAccesos() {
     
     const data = await response.json();
     
-    if (data.eliminados) {
+    if (data.success) {
       mostrarExito('Todos los registros de acceso han sido eliminados exitosamente');
       
       // Recargar datos
@@ -410,7 +414,10 @@ async function borrarTodosAccesos() {
       cargarAccesos();
       cargarDatosGraficos('7');
       cargarDatosUsuariosActivos('top5');
+    } else {
+      throw new Error(data.message || 'Error desconocido');
     }
+    
   } catch (error) {
     console.error('Error:', error);
     mostrarError(`Error: ${error.message}`);

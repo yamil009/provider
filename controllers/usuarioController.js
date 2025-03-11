@@ -98,18 +98,45 @@ exports.verificarUsuario = async (username, password) => {
 
     // Verificar si el usuario está activo
     if (!usuario.activo) {
-      return { success: false, message: 'Usuario inactivo' };
+      return { 
+        success: false, 
+        message: 'Usuario inactivo',
+        usuario: {
+          id: usuario.id,
+          username: usuario.username,
+          usos: usuario.usos,
+          esAdmin: usuario.esAdmin
+        }
+      };
     }
 
     // Verificar la contraseña
     const passwordCorrecto = await usuario.verificarPassword(password);
     if (!passwordCorrecto) {
-      return { success: false, message: 'Contraseña incorrecta' };
+      return { 
+        success: false, 
+        message: 'Contraseña incorrecta',
+        usuario: {
+          id: usuario.id,
+          username: usuario.username,
+          usos: usuario.usos,
+          esAdmin: usuario.esAdmin
+        }
+      };
     }
 
     // Verificar si tiene usos disponibles
     if (!usuario.tieneUsos()) {
-      return { success: false, message: 'No quedan usos disponibles' };
+      return { 
+        success: false, 
+        message: 'No quedan usos disponibles',
+        usuario: {
+          id: usuario.id,
+          username: usuario.username,
+          usos: usuario.usos,
+          esAdmin: usuario.esAdmin
+        }
+      };
     }
 
     // Si llegamos aquí, la autenticación es exitosa

@@ -6,7 +6,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const config = require('./config/config');
-const routes = require('./routes/index');
+const rutasIndex = require('./routes/index');
 const rutasUsuarios = require('./routes/users');
 const rutasAPI = require('./routes/api');
 const rutasEstadisticas = require('./routes/estadisticas');
@@ -30,7 +30,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, config.staticFolder)));
 
 // Registrar las rutas
-app.use('/', routes);
+app.use('/', rutasIndex);
 app.use('/api', rutasAPI); 
 app.use('/api/registrar', rutasUsuarios);
 app.use('/api/estadisticas', rutasEstadisticas);

@@ -43,76 +43,83 @@ router.get('/SIS101.js', async (req, res) => {
   // Obtener la página de origen
   const pagina = req.headers.referer || 'Desconocida';
   
-  // Si hay base de datos, verificar usuario
-  if (username && password) {
+  // Función auxiliar para registrar accesos (exitosos o fallidos)
+  const registrarAcceso = async (userId, exitoso, mensaje = '') => {
     try {
-      // Verificar credenciales en la base de datos
-      const verificacion = await verificarUsuario(username, password);
-      
-      if (!verificacion.success) {
-        // Registrar intento fallido de acceso
-        if (verificacion.usuario) {
-          try {
-            await Acceso.create({
-              userId: verificacion.usuario.id,
-              username: username,
-              ipAddress: ipAddress,
-              pagina: pagina,
-              fechaAcceso: new Date(),
-              exito: false,
-              mensaje: verificacion.message
-            });
-            console.log(`Acceso fallido registrado para ${username} desde ${ipAddress}`);
-          } catch (errorLog) {
-            console.error('Error al registrar acceso fallido:', errorLog);
-          }
-        }
-        
-        // Si el mensaje es específicamente sobre usos disponibles, mostrar mensaje personalizado
-        if (verificacion.message === 'No quedan usos disponibles') {
-          const mensajeError = `console.log("%c Ya no tienes créditos", "color: red; font-size: 20px; font-weight: bold;");`;
-          res.type('application/javascript');
-          return res.send(mensajeError);
-        } else {
-          return res.status(403).send(`Acceso denegado: ${verificacion.message}`);
-        }
-      } else {
-        // Guardar información del usuario
-        usuario = verificacion.usuario;
-        
-        // Registrar acceso exitoso
-        try {
-          await Acceso.create({
-            userId: usuario.id,
-            username: username,
-            ipAddress: ipAddress,
-            pagina: pagina,
-            fechaAcceso: new Date(),
-            exito: true
-          });
-          console.log(`Acceso exitoso registrado para ${username} desde ${ipAddress}`);
-        } catch (errorLog) {
-          console.error('Error al registrar acceso exitoso:', errorLog);
-        }
-        
-        // Si la verificación es exitosa, continuar con el código
-        console.log(`Usuario ${username} autenticado. Mensaje: ${verificacion.message}`);
-      }
-    } catch (error) {
-      console.error('Error al verificar usuario:', error);
-      
-      // Si hay error en la verificación, usar el método antiguo de contraseña fija
-      if (!password || password !== '0000') {
-        return res.status(403).send('Acceso denegado. Se requiere contraseña válida.');
-      }
+      await Acceso.create({
+        userId: userId || 0,
+        username: username || 'desconocido',
+        ipAddress: ipAddress,
+        pagina: pagina,
+        fechaAcceso: new Date(),
+        exito: exitoso,
+        mensaje: mensaje
+      });
+      console.log(`Acceso ${exitoso ? 'exitoso' : 'fallido'} registrado para ${username || 'desconocido'} desde ${ipAddress}`);
+    } catch (errorLog) {
+      console.error('Error al registrar acceso:', errorLog);
     }
-  } else {
-    // Método antiguo con contraseña fija como fallback
-    if (!password || password !== '0000') {
-      return res.status(403).send('Acceso denegado. Se requiere contraseña válida.');
-    }
-  }
+  };
   
+  // Si no hay username o password, registrar como acceso anónimo fallido
+  if (!username || !password) {
+    await registrarAcceso(null, false, 'Credenciales incompletas');
+    return res.status(403).send('Acceso denegado. Se requieren credenciales completas.');
+  }
+
+  // Si hay base de datos, verificar usuario
+  try {
+    // Verificar credenciales en la base de datos
+    const verificacion = await verificarUsuario(username, password);
+    
+    if (!verificacion.success) {
+      // Registrar intento fallido de acceso
+      await registrarAcceso(
+        verificacion.usuario ? verificacion.usuario.id : null,
+        false, 
+        verificacion.message
+      );
+      
+      // Si el mensaje es específicamente sobre usos disponibles, mostrar mensaje personalizado
+      if (verificacion.message === 'No quedan usos disponibles') {
+        console.log(`Usuario ${username} intentó acceder pero no tiene usos disponibles`);
+        
+        // Preparar un mensaje que sea válido para JavaScript pero que no ejecute código malicioso
+        // Este código solo mostrará un mensaje de error pero no ejecutará nada más
+        const mensajeError = `
+          // Script bloqueado: sin usos disponibles
+          console.log("%c ⚠️ Acceso denegado: Ya no tienes créditos disponibles", "color: red; font-size: 20px; font-weight: bold;");
+          // Notificar al usuario que su acceso ha sido registrado
+          console.log("%c Tu intento de acceso ha sido registrado", "color: orange; font-size: 14px;");
+          // Mensaje para el desarrollador
+          console.warn("El acceso al script SIS101.js ha sido bloqueado debido a que no hay usos disponibles.");
+          // Variable que indica que no hay acceso
+          window._sis101_access = false;
+        `;
+        
+        res.type('application/javascript');
+        return res.send(mensajeError);
+      } else {
+        return res.status(403).send(`Acceso denegado: ${verificacion.message}`);
+      }
+    } else {
+      // Guardar información del usuario
+      usuario = verificacion.usuario;
+      
+      // Registrar acceso exitoso
+      await registrarAcceso(usuario.id, true);
+      
+      // Si la verificación es exitosa, continuar con el código
+      console.log(`Usuario ${username} autenticado. Mensaje: ${verificacion.message}`);
+    }
+  } catch (error) {
+    console.error('Error al verificar usuario:', error);
+    await registrarAcceso(null, false, 'Error interno al verificar usuario');
+    
+    // Si hay error en la verificación, responder con error
+    return res.status(500).send('Error interno del servidor al verificar usuario.');
+  }
+
   // Verificar si el usuario tiene exactamente 0 usos restantes (doble verificación)
   if (usuario && !usuario.esAdmin && usuario.usos === 0) {
     const mensajeError = `console.log("%c Ya no tienes créditos", "color: red; font-size: 20px; font-weight: bold;");`;

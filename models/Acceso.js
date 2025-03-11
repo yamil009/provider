@@ -33,6 +33,11 @@ const Acceso = sequelize.define('Acceso', {
     allowNull: true,
     defaultValue: 'Desconocida'
   },
+  exito: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
+  },
   fechaAcceso: {
     type: DataTypes.DATE,
     allowNull: false,
