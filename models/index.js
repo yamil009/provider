@@ -14,6 +14,12 @@ const models = {
 // Función para sincronizar la base de datos
 const sincronizarDB = async (force = false) => {
   try {
+    console.log('Intentando conectar a la base de datos MySQL...');
+    console.log(`Host: ${process.env.DB_HOST || '127.0.0.1'}`);
+    console.log(`Puerto: ${process.env.DB_PORT || '3306'}`);
+    console.log(`Usuario: ${process.env.DB_USERNAME || 'root'}`);
+    console.log(`Base de datos: ${process.env.DB_NAME || 'user-control'}`);
+    
     // Probar la conexión
     const connected = await testConnection();
     if (!connected) {
