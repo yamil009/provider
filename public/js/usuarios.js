@@ -377,7 +377,7 @@ async function cargarUsuarios() {
       
       row.innerHTML = `
         <td>${usuario.id}</td>
-        <td>${usuario.username}${esAdmin ? ' <span class="etiqueta-admin">Admin</span>' : ''}</td>
+        <td><i class="fa-solid fa-user"></i> ${usuario.username}${esAdmin ? ' <span class="etiqueta-admin">Admin</span>' : ''}</td>
         <td>${usuario.password}</td>
         <td>${usos}</td>
         <td><span class="estado ${usuario.activo ? 'activo' : 'inactivo'}">${usuario.activo ? 'Habilitado' : 'Deshabilitado'}</span></td>
@@ -386,13 +386,13 @@ async function cargarUsuarios() {
         <td>
           <div class="botones-accion">
             ${esAdmin ? 
-              `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}">Editar</button>
-               <button class="boton boton-eliminar" disabled title="No se puede eliminar al administrador">Eliminar</button>
-               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}">Copiar Código</button>` : 
-              `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}">Editar</button>
-               <button class="boton boton-eliminar" data-id="${usuario.id}" data-username="${usuario.username}">Eliminar</button>
-               <button class="boton boton-recargar" data-id="${usuario.id}" data-username="${usuario.username}">Recargar Usos</button>
-               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}">Copiar Código</button>`}
+              `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}" title="Editar"><i class="fa-solid fa-pencil"></i></button>
+               <button class="boton boton-eliminar" disabled title="No se puede eliminar al administrador"><i class="fa-solid fa-trash"></i></button>
+               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}" title="Copiar Código"><i class="fa-solid fa-clipboard"></i></button>` : 
+              `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}" title="Editar"><i class="fa-solid fa-pencil"></i></button>
+               <button class="boton boton-eliminar" data-id="${usuario.id}" data-username="${usuario.username}" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+               <button class="boton boton-recargar" data-id="${usuario.id}" data-username="${usuario.username}" title="Recargar Usos"><i class="fa-solid fa-coins"></i></button>
+               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}" title="Copiar Código"><i class="fa-solid fa-clipboard"></i></button>`}
           </div>
         </td>
       `;

@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Usuarios</title>
   <link rel="stylesheet" href="css/styles.css">
+  <!-- Integración de Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     /* Estilos adicionales para botones de acción */
     .botones-accion {
@@ -58,7 +60,7 @@
   <div class="cabecera">
     <div class="contenedor">
       <h1>Panel de Control de Usuarios</h1>
-      <a href="/accesos" class="boton boton-secundario">Ver Historial de Accesos</a>
+      <a href="/accesos" class="boton boton-secundario"><i class="fa-solid fa-eye"></i> Ver Historial de Accesos</a>
     </div>
   </div>
 
@@ -85,7 +87,7 @@
             </div>
 
             <div class="texto-derecha">
-              <button type="submit" id="submitBtn" class="boton boton-primario">Registrar Usuario</button>
+              <button type="submit" id="submitBtn" class="boton boton-primario"><i class="fa-solid fa-user-plus"></i> Registrar Usuario</button>
             </div>
           </form>
         </div>
@@ -105,7 +107,7 @@
     <!-- Sección de tabla de usuarios -->
     <div class="tarjeta">
       <h2>Listado de Usuarios</h2>
-      <button id="refreshBtn" class="boton boton-actualizar">Actualizar Lista</button>
+      <button id="refreshBtn" class="boton boton-actualizar"><i class="fa-solid fa-sync"></i> Actualizar Lista</button>
       <div class="tabla-responsive">
         <table class="tabla" id="usersTable">
           <thead>
@@ -135,8 +137,8 @@
       <p>¿Estás seguro de que deseas eliminar al usuario <strong id="deleteUserName"></strong>?</p>
       <p>Esta acción no se puede deshacer.</p>
       <div class="pie-modal">
-        <button id="cancelDeleteBtn" class="boton boton-secundario">Cancelar</button>
-        <button id="confirmDeleteBtn" class="boton boton-peligro">Eliminar</button>
+        <button id="cancelDeleteBtn" class="boton boton-secundario"><i class="fa-solid fa-ban"></i> Cancelar</button>
+        <button id="confirmDeleteBtn" class="boton boton-peligro"><i class="fa-solid fa-trash"></i> Eliminar</button>
       </div>
     </div>
   </div>
@@ -153,8 +155,8 @@
       </div>
 
       <div class="pie-modal">
-        <button id="cancelRecargarBtn" class="boton boton-secundario">Cancelar</button>
-        <button id="confirmRecargarBtn" class="boton boton-primario">Confirmar</button>
+        <button id="cancelRecargarBtn" class="boton boton-secundario"><i class="fa-solid fa-ban"></i> Cancelar</button>
+        <button id="confirmRecargarBtn" class="boton boton-primario"><i class="fa-solid fa-plus"></i> Confirmar</button>
       </div>
     </div>
   </div>
@@ -190,8 +192,8 @@
         </div>
 
         <div class="pie-modal">
-          <button type="button" id="cancelEditBtn" class="boton boton-secundario">Cancelar</button>
-          <button type="submit" class="boton boton-primario">Guardar Cambios</button>
+          <button type="button" id="cancelEditBtn" class="boton boton-secundario"><i class="fa-solid fa-ban"></i> Cancelar</button>
+          <button type="submit" class="boton boton-primario"><i class="fa-solid fa-save"></i> Guardar Cambios</button>
         </div>
       </form>
     </div>
