@@ -4,7 +4,7 @@ buildCommand = "npm install"
 
 [deploy]
 startCommand = "npm start"
-healthcheckPath = "/SIS101.js"
+healthcheckPath = "/health"
 healthcheckTimeout = 180
 
 # La configuración de timezone debe estar en variables de entorno, no aquí
