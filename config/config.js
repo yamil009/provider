@@ -10,11 +10,11 @@ module.exports = {
 
   // Configuración de la base de datos
   database: {
-    host: process.env.DB_HOST || '127.0.0.1',
-    port: process.env.DB_PORT || 3306,
-    username: process.env.DB_USERNAME || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'user-control',
+    host: process.env.MYSQLHOST || process.env.DB_HOST || '127.0.0.1',
+    port: parseInt(process.env.MYSQLPORT || process.env.DB_PORT || '3306', 10),
+    username: process.env.MYSQLUSER || process.env.DB_USERNAME || 'root',
+    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || '',
+    database: process.env.MYSQLDATABASE || process.env.DB_NAME || 'user-control',
     dialect: 'mysql',
     logging: process.env.NODE_ENV === 'production' ? false : console.log,
     timezone: '-04:00', // Ajusta esto según tu zona horaria

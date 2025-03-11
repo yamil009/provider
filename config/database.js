@@ -6,14 +6,18 @@ const { Sequelize } = require('sequelize');
 const config = require('./config');
 
 // Determinar si usar la URL de la base de datos (producción) o configuración individual (desarrollo)
-const useConnectionString = process.env.DATABASE_URL ? true : false;
+// En Railway, utilizamos la variable MYSQL_URL que nos proporciona
+const useConnectionString = process.env.MYSQL_URL || process.env.DATABASE_URL ? true : false;
 
 // Crear instancia de Sequelize
 let sequelize;
 
 if (useConnectionString) {
-  // Para producción (Railway proporciona DATABASE_URL)
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
+  // Para producción (Railway proporciona MYSQL_URL)
+  const connectionString = process.env.MYSQL_URL || process.env.DATABASE_URL;
+  console.log(`Usando URL de conexión: ${connectionString ? 'Sí (no mostrada por seguridad)' : 'No'}`);
+  
+  sequelize = new Sequelize(connectionString, {
     dialect: 'mysql',
     dialectOptions: {
       ssl: process.env.DB_SSL === 'true' ? {
@@ -21,18 +25,33 @@ if (useConnectionString) {
         rejectUnauthorized: false
       } : false
     },
-    logging: config.database.logging
+    logging: config.database.logging,
+    define: {
+      timestamps: false // Desactivamos timestamps para evitar createdAt/updatedAt
+    }
   });
 } else {
   // Para desarrollo local - usando los valores específicos para tu entorno
-  // Nota: Valores hardcodeados como fallback si las variables de entorno no funcionan
+  // Hardcodeamos la contraseña de MySQL para entorno local para asegurar la conexión
+  const DB_NAME = 'user-control';
+  const DB_USERNAME = 'root';
+  const DB_PASSWORD = '74250853'; // Tu contraseña hardcodeada
+  const DB_HOST = '127.0.0.1';
+  const DB_PORT = 3306;
+  
+  console.log(`Conexión local a MySQL:
+  Host: ${DB_HOST}
+  Puerto: ${DB_PORT}
+  Usuario: ${DB_USERNAME}
+  Base de datos: ${DB_NAME}`);
+  
   sequelize = new Sequelize(
-    process.env.DB_NAME || 'user-control',
-    process.env.DB_USERNAME || 'root',
-    process.env.DB_PASSWORD || '74250853',
+    DB_NAME,
+    DB_USERNAME,
+    DB_PASSWORD,
     {
-      host: process.env.DB_HOST || '127.0.0.1',
-      port: parseInt(process.env.DB_PORT || '3306', 10),
+      host: DB_HOST,
+      port: DB_PORT,
       dialect: 'mysql',
       logging: console.log,
       timezone: '-04:00',
