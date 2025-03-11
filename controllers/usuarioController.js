@@ -194,7 +194,7 @@ exports.obtenerUsuarios = async (req, res) => {
   try {
     // Obtener todos los usuarios con sus datos
     const usuarios = await User.findAll({
-      attributes: ['id', 'username', 'password', 'usos', 'activo', 'esAdmin', 'createdAt', 'updatedAt']
+      attributes: ['id', 'username', 'password', 'usos', 'activo', 'esAdmin', 'fechaCreacion', 'horaCreacion']
     });
     
     return res.status(200).json(usuarios);

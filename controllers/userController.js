@@ -79,7 +79,7 @@ exports.verificarUsuario = async (username, password) => {
 exports.obtenerUsuarios = async (req, res) => {
   try {
     const usuarios = await User.findAll({
-      attributes: ['id', 'username', 'totalUsos', 'usosRestantes', 'activo', 'createdAt', 'updatedAt']
+      attributes: ['id', 'username', 'totalUsos', 'usosRestantes', 'activo', 'fechaCreacion', 'horaCreacion']
     });
     return res.status(200).json(usuarios);
   } catch (error) {

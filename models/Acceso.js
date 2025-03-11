@@ -42,6 +42,15 @@ const Acceso = sequelize.define('Acceso', {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW
+  },
+  horaAcceso: {
+    type: DataTypes.STRING(8),  // Formato HH:MM:SS
+    allowNull: false,
+    defaultValue: '00:00:00'
+  },
+  mensaje: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 }, {
   tableName: 'accesos',
@@ -54,6 +63,10 @@ const Acceso = sequelize.define('Acceso', {
     {
       name: 'acceso_fecha_idx',
       fields: ['fechaAcceso']
+    },
+    {
+      name: 'acceso_hora_idx',
+      fields: ['horaAcceso']
     }
   ]
 });

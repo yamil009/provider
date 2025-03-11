@@ -43,10 +43,20 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false
+  },
+  fechaCreacion: {
+    type: DataTypes.DATEONLY,  // Solo almacena la fecha sin la hora
+    allowNull: false,
+    defaultValue: DataTypes.NOW
+  },
+  horaCreacion: {
+    type: DataTypes.STRING(8),  // Formato HH:MM:SS
+    allowNull: false,
+    defaultValue: '00:00:00'
   }
 }, {
   tableName: 'usuarios', // Especificamos explícitamente el nombre de la tabla
-  timestamps: true      // Añade createdAt y updatedAt
+  timestamps: false      // Desactivamos los timestamps automáticos
   // Se han eliminado los hooks para permitir la administración directa de contraseñas
 });
 

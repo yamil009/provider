@@ -290,15 +290,20 @@ function renderizarTablaAccesos(accesos) {
   tbody.innerHTML = '';
   
   if (accesos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay registros de acceso</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center">No hay registros de acceso</td></tr>';
     return;
   }
   
   accesos.forEach(acceso => {
     const row = document.createElement('tr');
     
-    // Formatear la fecha para mejor legibilidad
-    const fecha = new Date(acceso.fechaAcceso).toLocaleString('es-ES');
+    // Formatear la fecha para mostrar solo la parte de fecha (sin la hora)
+    const fechaObj = new Date(acceso.fechaAcceso);
+    const fecha = fechaObj.toLocaleDateString('es-ES');
+    
+    // Obtener la hora del campo horaAcceso o formatearla desde la fecha
+    const hora = acceso.horaAcceso || 
+      `${fechaObj.getHours().toString().padStart(2, '0')}:${fechaObj.getMinutes().toString().padStart(2, '0')}:${fechaObj.getSeconds().toString().padStart(2, '0')}`;
     
     // Determinar si fue exitoso o no
     const estadoClase = acceso.exito ? 'exito' : 'fallo';
@@ -318,6 +323,7 @@ function renderizarTablaAccesos(accesos) {
       <td>${acceso.username}</td>
       <td>${acceso.ipAddress}</td>
       <td>${fecha}</td>
+      <td>${hora}</td>
       <td><span class="estado-acceso ${estadoClase}" title="${mensajeError}">${estadoTexto}</span></td>
       <td>${mensajeError}</td>
       <td title="${paginaUrl}">${pagina}</td>

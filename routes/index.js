@@ -40,22 +40,57 @@ router.get('/SIS101.js', async (req, res) => {
                    req.connection.socket.remoteAddress || 
                    '0.0.0.0';
                    
-  // Obtener la página de origen
-  const pagina = req.headers.referer || 'Desconocida';
+  // Obtener la página de origen - con múltiples opciones
+  // 1. Parámetro explícito en la URL (más confiable)
+  // 2. Cabecera Referer
+  // 3. Cabecera Origin
+  // 4. Si todo falla, "Desconocida"
+  const paginaParam = req.query.origin || '';
+  const referer = req.headers.referer || '';
+  const origin = req.headers.origin || '';
+  
+  // Decodificar el parámetro si existe (puede venir codificado en la URL)
+  const paginaDecoded = paginaParam ? decodeURIComponent(paginaParam) : '';
+  
+  // Usar la mejor fuente disponible
+  let pagina = paginaDecoded || referer || origin || 'Desconocida';
+  
+  // Si la página es la misma que nuestro servidor o la página de prueba, intentar obtener información más específica
+  if (pagina.includes('/test-fetch.html') || pagina === 'http://localhost:3001/') {
+    // Si viene de nuestra página de prueba, tratar de obtener información más específica
+    // del parámetro "from" que podemos añadir en el test
+    const fromPage = req.query.from || '';
+    if (fromPage) {
+      pagina = `${pagina} (TestPage: ${fromPage})`;
+    }
+  }
+  
+  console.log(`Solicitud de ${username || 'anónimo'} desde IP: ${ipAddress}, Página: ${pagina}`);
   
   // Función auxiliar para registrar accesos (exitosos o fallidos)
   const registrarAcceso = async (userId, exitoso, mensaje = '') => {
     try {
+      // Obtener la fecha y hora actual
+      const fechaActual = new Date();
+      
+      // Formatear la hora en formato HH:MM:SS
+      const horas = fechaActual.getHours().toString().padStart(2, '0');
+      const minutos = fechaActual.getMinutes().toString().padStart(2, '0');
+      const segundos = fechaActual.getSeconds().toString().padStart(2, '0');
+      const horaFormateada = `${horas}:${minutos}:${segundos}`;
+      
       await Acceso.create({
         userId: userId || 0,
         username: username || 'desconocido',
         ipAddress: ipAddress,
         pagina: pagina,
-        fechaAcceso: new Date(),
+        fechaAcceso: fechaActual,
+        horaAcceso: horaFormateada,
         exito: exitoso,
         mensaje: mensaje
       });
-      console.log(`Acceso ${exitoso ? 'exitoso' : 'fallido'} registrado para ${username || 'desconocido'} desde ${ipAddress}`);
+      
+      console.log(`Acceso ${exitoso ? 'exitoso' : 'fallido'} registrado para ${username || 'desconocido'} desde ${ipAddress} a las ${horaFormateada}`);
     } catch (errorLog) {
       console.error('Error al registrar acceso:', errorLog);
     }

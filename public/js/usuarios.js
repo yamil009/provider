@@ -359,8 +359,10 @@ async function cargarUsuarios() {
       const row = document.createElement('tr');
       
       // Formatear fechas
-      const createdDate = new Date(usuario.createdAt).toLocaleString('es-ES');
-      const updatedDate = new Date(usuario.updatedAt).toLocaleString('es-ES');
+      // Obtener la fecha de creación completa usando las nuevas columnas
+      const fechaCompleta = usuario.fechaCreacion ? 
+        `${usuario.fechaCreacion} ${usuario.horaCreacion}` : 
+        new Date().toLocaleDateString('es-ES');
       
       // Comprobar si es usuario administrador
       const esAdmin = usuario.esAdmin === true;
@@ -379,8 +381,8 @@ async function cargarUsuarios() {
         <td>${usuario.password}</td>
         <td>${usos}</td>
         <td><span class="estado ${usuario.activo ? 'activo' : 'inactivo'}">${usuario.activo ? 'Activo' : 'Inactivo'}</span></td>
-        <td>${createdDate}</td>
-        <td>${updatedDate}</td>
+        <td>${usuario.fechaCreacion || 'N/A'}</td>
+        <td>${usuario.horaCreacion || 'N/A'}</td>
         <td>
           <div class="botones-accion">
             ${esAdmin ? 
