@@ -7,5 +7,4 @@ startCommand = "npm start"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 
-[environments]
-timezone = "America/La_Paz"
+# La configuración de timezone debe estar en variables de entorno, no aquí
