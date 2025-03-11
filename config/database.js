@@ -5,17 +5,32 @@ require('dotenv').config();
 const { Sequelize } = require('sequelize');
 const config = require('./config');
 
-// Determinar si usar la URL de la base de datos (producción) o configuración individual (desarrollo)
-// En Railway, utilizamos la variable MYSQL_URL que nos proporciona
-const useConnectionString = process.env.MYSQL_URL || process.env.DATABASE_URL ? true : false;
+// Verificar entorno Railway - sus variables tienen formatos específicos
+const isRailway = !!process.env.RAILWAY_SERVICE_NAME;
+
+// Para Railway, usamos MYSQL_URL o construimos la URL con las variables individuales
+let connectionString = null;
+
+if (isRailway) {
+  if (process.env.MYSQL_URL) {
+    connectionString = process.env.MYSQL_URL;
+  } else if (process.env.MYSQLHOST) {
+    // Construir URL de conexión a partir de variables de entorno de Railway
+    connectionString = `mysql://${process.env.MYSQLUSER}:${process.env.MYSQLPASSWORD}@${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${process.env.MYSQLDATABASE}`;
+  }
+}
+
+// Si no estamos en Railway, buscar DATABASE_URL normal
+if (!connectionString && process.env.DATABASE_URL) {
+  connectionString = process.env.DATABASE_URL;
+}
 
 // Crear instancia de Sequelize
 let sequelize;
 
-if (useConnectionString) {
-  // Para producción (Railway proporciona MYSQL_URL)
-  const connectionString = process.env.MYSQL_URL || process.env.DATABASE_URL;
-  console.log(`Usando URL de conexión: ${connectionString ? 'Sí (no mostrada por seguridad)' : 'No'}`);
+if (connectionString) {
+  // Para producción (Railway)
+  console.log(`Usando URL de conexión en entorno: ${isRailway ? 'Railway' : 'Producción'}`);
   
   sequelize = new Sequelize(connectionString, {
     dialect: 'mysql',
@@ -25,7 +40,7 @@ if (useConnectionString) {
         rejectUnauthorized: false
       } : false
     },
-    logging: config.database.logging,
+    logging: false,
     define: {
       timestamps: false // Desactivamos timestamps para evitar createdAt/updatedAt
     }
