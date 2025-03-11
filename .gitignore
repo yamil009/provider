@@ -3,7 +3,6 @@
 package-lock.json
 
 # Variables de entorno (contienen información sensible)
-.env
 .env.local
 .env.development
 .env.test

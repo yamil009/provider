@@ -50,12 +50,12 @@ if (isRailway) {
     }
   );
 } else {
-  // DESARROLLO LOCAL: Usar configuración hardcodeada para desarrollo
-  const DB_NAME = 'user-control';
-  const DB_USERNAME = 'root';
-  const DB_PASSWORD = '74250853';
-  const DB_HOST = '127.0.0.1';
-  const DB_PORT = 3306;
+  // DESARROLLO LOCAL: Usar configuración del archivo .env
+  const DB_NAME = process.env.DB_NAME || 'control_usuarios';
+  const DB_USERNAME = process.env.DB_USER || 'root';
+  const DB_PASSWORD = process.env.DB_PASSWORD || '';
+  const DB_HOST = process.env.DB_HOST || '127.0.0.1';
+  const DB_PORT = process.env.DB_PORT || 3306;
   
   console.log(`Conexión local a MySQL:
   Host: ${DB_HOST}

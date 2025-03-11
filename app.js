@@ -5,20 +5,16 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const config = require('./config/config');
 const rutasIndex = require('./routes/index');
-const rutasUsuarios = require('./routes/users');
-const rutasAPI = require('./routes/api');
-const rutasEstadisticas = require('./routes/estadisticas');
-const { sincronizarDB } = require('./models');
+const rutasUsuarios = require('./routes/usuarios');
 
 // Cargar variables de entorno
 require('dotenv').config();
 
 // Determinar si estamos en Railway
-const isRailway = !!process.env.RAILWAY_SERVICE_NAME;
-const isProduction = process.env.NODE_ENV === 'production' || isRailway;
+const enRailway = !!process.env.RAILWAY_SERVICE_NAME;
+const esProduccion = process.env.NODE_ENV === 'production' || enRailway;
 
 // Crear aplicación Express
 const app = express();
@@ -37,12 +33,12 @@ app.use(cors({
 // Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static(path.join(__dirname, config.staticFolder)));
 
-// Endpoint específico para healthcheck de Railway
+// Endpoint específico para comprobación de salud de Railway
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
 
-// Fallback para favicon.ico que suele causar errores 502
+// Ruta alternativa para favicon.ico que suele causar errores 502
 app.get('/favicon.ico', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'img', 'favicon.ico'));
 });
@@ -56,8 +52,6 @@ app.use((err, req, res, next) => {
 // Configurar rutas
 app.use('/', rutasIndex);
 app.use('/usuarios', rutasUsuarios);
-app.use('/api', rutasAPI);
-app.use('/api/estadisticas', rutasEstadisticas);
 
 // Ruta de fallback para cualquier otra petición
 app.use('*', (req, res) => {
@@ -65,44 +59,73 @@ app.use('*', (req, res) => {
 });
 
 // Determinar el puerto y host en los que escuchar
-const PORT = process.env.PORT || 8080;
-const HOST = process.env.HOST || '0.0.0.0'; // Usar 0.0.0.0 para Railway
+const PUERTO = process.env.PORT || 3000;
+const HOST = process.env.HOST || '127.0.0.1'; // Usar 127.0.0.1 para desarrollo local
 
 // Iniciar el servidor
-const server = app.listen(PORT, HOST, () => {
-  console.log(`Servidor iniciado en puerto ${PORT} y host ${HOST}`);
-  
-  if (isRailway) {
-    console.log('Aplicación desplegada en Railway.');
-  }
-  
-  console.log(`Ambiente: ${isProduction ? 'Producción' : 'Desarrollo'}`);
-  
-  // Después de iniciar el servidor, intentar configurar la base de datos
-  configurarBaseDeDatos();
-});
+const iniciarServidor = (puerto) => {
+  const servidor = app.listen(puerto, HOST, () => {
+    console.log(`Servidor iniciado en puerto ${puerto} y host ${HOST}`);
+    console.log(`\n📱 Accede a la aplicación en: http://${HOST}:${puerto}\n`);
 
-// Manejar cierre adecuado del servidor
-process.on('SIGTERM', () => {
-  console.log('SIGTERM recibido, cerrando servidor HTTP');
-  server.close(() => {
-    console.log('Servidor HTTP cerrado');
+    if (enRailway) {
+      console.log('Aplicación desplegada en Railway.');
+    }
+
+    console.log(`Ambiente: ${esProduccion ? 'Producción' : 'Desarrollo'}`);
+
+    // Después de iniciar el servidor, intentar configurar la base de datos
+    configurarBaseDeDatos();
   });
-});
 
-// Función para configurar la base de datos después de iniciar el servidor
+  // Manejar cierre adecuado del servidor
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM recibido, cerrando servidor HTTP');
+    servidor.close(() => {
+      console.log('Servidor HTTP cerrado');
+    });
+  });
+
+  return servidor;
+};
+
+// Intentar iniciar el servidor, probando puertos alternativos si es necesario
+let servidor;
+try {
+  servidor = iniciarServidor(PUERTO);
+} catch (error) {
+  if (error.code === 'EADDRINUSE') {
+    console.log(`Puerto ${PUERTO} ocupado, intentando con el puerto ${PUERTO + 1}`);
+    try {
+      servidor = iniciarServidor(PUERTO + 1);
+    } catch (error2) {
+      if (error2.code === 'EADDRINUSE') {
+        console.log(`Puerto ${PUERTO + 1} también ocupado, intentando con el puerto ${PUERTO + 2}`);
+        servidor = iniciarServidor(PUERTO + 2);
+      } else {
+        throw error2;
+      }
+    }
+  } else {
+    throw error;
+  }
+}
+
+/**
+ * Función para configurar la base de datos después de iniciar el servidor
+ */
 async function configurarBaseDeDatos() {
   try {
-    console.log('Intentando configurar la base de datos...');
-    const dbSincronizada = await sincronizarDB(false);
-    
-    if (dbSincronizada) {
-      console.log('Base de datos configurada correctamente.');
-    } else {
-      console.error('Advertencia: La base de datos no pudo ser configurada. Algunas funcionalidades pueden no estar disponibles.');
-    }
+    const { testConnection } = require('./config/database');
+
+    // Verificar la conexión a la base de datos
+    await testConnection();
+    console.log('✅ Conexión a la base de datos establecida correctamente.');
+    console.log('✅ Sistema listo para usar.');
+
+    return true;
   } catch (error) {
-    console.error('Error al configurar la base de datos:', error);
-    console.log('El servidor continúa en ejecución, pero algunas funcionalidades pueden no estar disponibles.');
+    console.error('❌ Error configurando la base de datos:', error);
+    return false;
   }
 }
