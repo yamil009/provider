@@ -3,7 +3,7 @@
  */
 module.exports = {
   port: process.env.PORT || 3001,
-  host: process.env.HOST || '192.168.100.57',
+  host: process.env.HOST || 'localhost',
   staticFolder: 'public',
   viewsFolder: 'views'
 };
