@@ -35,14 +35,9 @@ app.use('/api', rutasAPI);
 app.use('/api/registrar', rutasUsuarios);
 app.use('/api/estadisticas', rutasEstadisticas);
 
-// Ruta para la página de gestión de usuarios (URL secreta para administración)
-app.get('/uDmxs9GZ3p7fK4h_2bRT6qLn', (req, res) => {
+// Ruta para la página de gestión de usuarios
+app.get('/usuarios', (req, res) => {
   res.sendFile(path.join(__dirname, config.viewsFolder, 'usuarios.html'));
-});
-
-// Ruta para la página de historial de accesos (URL secreta para administración)
-app.get('/aXcr5TD8vE9s_Wq2bJmP3zLk', (req, res) => {
-  res.sendFile(path.join(__dirname, config.viewsFolder, 'accesos.html'));
 });
 
 // Inicializar base de datos y luego iniciar el servidor
@@ -64,8 +59,8 @@ const iniciarServidor = async () => {
         console.log(`Servidor en ejecución en ${baseUrl}`);
         console.log(`Accede a SIS101.js en ${baseUrl}/SIS101.js`);
         console.log(`API de usuarios disponible en ${baseUrl}/api/registrar`);
-        console.log(`Panel de administración disponible en ${baseUrl}/uDmxs9GZ3p7fK4h_2bRT6qLn`);
-        console.log(`Historial de accesos disponible en ${baseUrl}/aXcr5TD8vE9s_Wq2bJmP3zLk`);
+        console.log(`Panel de administración disponible en ${baseUrl}/usuarios`);
+        console.log(`Historial de accesos disponible en ${baseUrl}/accesos`);
         console.log(`Ambiente: ${isProduction ? 'Producción' : 'Desarrollo'}`);
       });
     } else {

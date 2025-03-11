@@ -3,6 +3,7 @@
  */
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
+const config = require('./config');
 
 // Determinar si usar la URL de la base de datos (producción) o configuración individual (desarrollo)
 const useConnectionString = process.env.DATABASE_URL ? true : false;
@@ -20,20 +21,24 @@ if (useConnectionString) {
         rejectUnauthorized: false
       } : false
     },
-    logging: false
+    logging: config.database.logging
   });
 } else {
-  // Para desarrollo local - Usando valores directos que sabemos que funcionan
-  // IMPORTANTE: Este enfoque directo es temporal para solucionar el problema de conexión
+  // Para desarrollo local - usando los valores específicos para tu entorno
+  // Nota: Valores hardcodeados como fallback si las variables de entorno no funcionan
   sequelize = new Sequelize(
-    'user-control',     // Nombre de la base de datos
-    'root',             // Usuario de MySQL
-    '74250853',         // Contraseña
+    process.env.DB_NAME || 'user-control',
+    process.env.DB_USERNAME || 'root',
+    process.env.DB_PASSWORD || '74250853',
     {
-      host: 'localhost',  // IP directa en lugar de localhost
-      port: 3306,
+      host: process.env.DB_HOST || '127.0.0.1',
+      port: parseInt(process.env.DB_PORT || '3306', 10),
       dialect: 'mysql',
-      logging: console.log,  // Activar logging para ver más detalles
+      logging: console.log,
+      timezone: '-04:00',
+      define: {
+        timestamps: false // Desactivamos timestamps por defecto
+      },
       dialectOptions: {
         connectTimeout: 60000 // Aumentar timeout de conexión
       }
