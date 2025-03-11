@@ -5,25 +5,29 @@
   --color-fondo-tarjeta: #110F19;
   --color-primario: #853BCE;
   --color-secundario: #9E2272;
-  
+
   /* Colores derivados */
   --color-acento: #853BCE;
   --color-acento-oscuro: #7232b0;
   --color-exito: #27ae60;
   --color-advertencia: #f39c12;
   --color-peligro: #e74c3c;
-  
+
   /* Colores de texto */
   --color-texto: #ffffff;
   --color-texto-oscuro: #ecf0f1;
   --color-texto-claro: #b8b8b8;
   --color-admin: #9E2272;
-  
+
   /* Otros */
-  --sombra-suave: 0 4px 12px rgba(0,0,0,0.3);
+  --sombra-suave: 0 4px 12px rgba(0, 0, 0, 0.3);
   --radio-borde: 6px;
   --transicion: all 0.3s ease;
-  --fuente-principal: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --fuente-principal: 'Inter', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+  font-family: "Inter", sans-serif;
 }
 
 /* Estilos base */
@@ -44,7 +48,9 @@ body {
 }
 
 /* Encabezados */
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   margin-top: 0;
   color: var(--color-texto-oscuro);
   font-weight: 600;
@@ -156,7 +162,7 @@ input[type="date"]:focus {
 .boton:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .boton:active {
@@ -269,7 +275,7 @@ tbody tr:hover {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.7);
+  background-color: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(3px);
 }
 
@@ -280,7 +286,7 @@ tbody tr:hover {
   border-radius: var(--radio-borde);
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--color-primario);
 }
 
@@ -309,7 +315,7 @@ tbody tr:hover {
   font-weight: 500;
   min-width: 250px;
   max-width: 350px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 9999;
   opacity: 0;
   transform: translateX(50px);
@@ -389,16 +395,16 @@ tbody tr:hover {
   .fila {
     flex-direction: column;
   }
-  
+
   .columna {
     width: 100%;
   }
-  
+
   .contenido-modal {
     width: 95%;
     margin: 10% auto;
   }
-  
+
   table {
     display: block;
     overflow-x: auto;

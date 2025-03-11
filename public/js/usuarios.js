@@ -12,13 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
   deleteModal = document.getElementById('deleteModal');
   recargarUsosModal = document.getElementById('recargarUsosModal');
   editModal = document.getElementById('editModal');
-  
+
   // Registrar eventos
   document.getElementById('registroForm').addEventListener('submit', handleRegistroSubmit);
   document.getElementById('refreshBtn').addEventListener('click', cargarUsuarios);
   document.getElementById('confirmDeleteBtn').addEventListener('click', handleDeleteConfirm);
   document.getElementById('cancelDeleteBtn').addEventListener('click', cerrarModalEliminacion);
-  
+
   // Eventos para modal de recarga de usos
   if (document.getElementById('confirmRecargarBtn')) {
     document.getElementById('confirmRecargarBtn').addEventListener('click', handleRecargarConfirm);
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('cancelRecargarBtn')) {
     document.getElementById('cancelRecargarBtn').addEventListener('click', cerrarModalRecarga);
   }
-  
+
   // Eventos para modal de edición
   if (document.getElementById('confirmEditBtn')) {
     document.getElementById('confirmEditBtn').addEventListener('click', handleEditConfirm);
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('cancelEditBtn')) {
     document.getElementById('cancelEditBtn').addEventListener('click', cerrarModalEdicion);
   }
-  
+
   // Cerrar los modales si se hace clic fuera de ellos
   window.addEventListener('click', (event) => {
     if (event.target === deleteModal) {
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cerrarModalEdicion();
     }
   });
-  
+
   // Cargar usuarios al iniciar
   cargarUsuarios();
 });
@@ -59,15 +59,15 @@ function mostrarAlerta(mensaje, tipo) {
   alertasAnteriores.forEach(alerta => {
     document.body.removeChild(alerta);
   });
-  
+
   // Crear una nueva alerta
   const alertaElement = document.createElement('div');
   alertaElement.className = `alerta alerta-${tipo}`;
   alertaElement.innerHTML = mensaje;
-  
+
   // Añadir al body en lugar de usar el contenedor
   document.body.appendChild(alertaElement);
-  
+
   // Ocultar el mensaje después de 5 segundos (aunque la animación lo hará)
   setTimeout(() => {
     if (alertaElement.parentNode) {
@@ -105,18 +105,18 @@ function cerrarModalRecarga() {
 // Función para mostrar el modal de edición
 function mostrarModalEdicion(usuario) {
   editUserId = usuario.id;
-  
+
   // Llenar el formulario con los datos actuales
   document.getElementById('editUsername').value = usuario.username;
   document.getElementById('editPassword').value = ''; // Vacío para mantener la actual
-  
+
   // Establecer el estado del usuario en los botones de radio
   document.getElementById('editActivoTrue').checked = usuario.activo;
   document.getElementById('editActivoFalse').checked = !usuario.activo;
-  
+
   // Mostrar el nombre de usuario en el título
   document.getElementById('editUserTitle').textContent = usuario.username;
-  
+
   // Mostrar el modal
   editModal.style.display = 'block';
 }
@@ -125,7 +125,7 @@ function mostrarModalEdicion(usuario) {
 function cerrarModalEdicion() {
   editModal.style.display = 'none';
   editUserId = null;
-  
+
   // Resetear el formulario si existe
   const editForm = document.getElementById('editForm');
   if (editForm) {
@@ -136,16 +136,16 @@ function cerrarModalEdicion() {
 // Manejador de confirmación de eliminación
 async function handleDeleteConfirm() {
   if (!deleteUserId) return;
-  
+
   try {
     const response = await fetch(`/api/registrar/${deleteUserId}`, {
       method: 'DELETE'
     });
-    
+
     if (!response.ok) {
       throw new Error('Error al eliminar usuario');
     }
-    
+
     cerrarModalEliminacion();
     mostrarAlerta('Usuario eliminado exitosamente', 'exito');
     cargarUsuarios(); // Actualizar la lista
@@ -157,14 +157,14 @@ async function handleDeleteConfirm() {
 // Manejador de confirmación de recarga de usos
 async function handleRecargarConfirm() {
   if (!recargarUsosId) return;
-  
+
   const cantidadUsos = parseInt(document.getElementById('cantidadUsos').value);
-  
+
   if (isNaN(cantidadUsos) || cantidadUsos <= 0) {
     mostrarAlerta('Por favor, ingrese una cantidad válida de usos', 'error');
     return;
   }
-  
+
   try {
     const response = await fetch(`/api/registrar/${recargarUsosId}/aumentar-usos`, {
       method: 'POST',
@@ -175,13 +175,13 @@ async function handleRecargarConfirm() {
         cantidad: cantidadUsos
       })
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Error al recargar usos');
     }
-    
+
     cerrarModalRecarga();
     mostrarAlerta(data.mensaje || 'Usos recargados exitosamente', 'exito');
     cargarUsuarios(); // Actualizar la lista
@@ -193,16 +193,16 @@ async function handleRecargarConfirm() {
 // Manejador de confirmación de edición
 async function handleEditConfirm() {
   if (!editUserId) return;
-  
+
   const username = document.getElementById('editUsername').value.trim();
   const password = document.getElementById('editPassword').value.trim();
   const activo = document.getElementById('editActivoTrue').checked;
-  
+
   if (!username) {
     mostrarAlerta('Por favor, ingrese todos los campos correctamente', 'error');
     return;
   }
-  
+
   try {
     const response = await fetch(`/api/registrar/${editUserId}`, {
       method: 'PUT',
@@ -215,13 +215,13 @@ async function handleEditConfirm() {
         activo
       })
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Error al editar usuario');
     }
-    
+
     cerrarModalEdicion();
     mostrarAlerta(data.mensaje || 'Usuario editado exitosamente', 'exito');
     cargarUsuarios(); // Actualizar la lista
@@ -234,18 +234,18 @@ async function handleEditConfirm() {
 function generarContraseñaAleatoria(longitud = 5) {
   const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let contraseña = '';
-  
+
   // Asegurar que al menos hay una mayúscula, una minúscula y un número
   contraseña += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]; // Una mayúscula
   contraseña += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]; // Una minúscula
   contraseña += '0123456789'[Math.floor(Math.random() * 10)]; // Un número
-  
+
   // Completar el resto de la contraseña aleatoriamente
   for (let i = 3; i < longitud; i++) {
     const indiceAleatorio = Math.floor(Math.random() * caracteres.length);
     contraseña += caracteres.charAt(indiceAleatorio);
   }
-  
+
   // Mezclar los caracteres para que no siempre siga el mismo patrón
   return contraseña.split('').sort(() => 0.5 - Math.random()).join('');
 }
@@ -253,24 +253,24 @@ function generarContraseñaAleatoria(longitud = 5) {
 // Manejador del envío del formulario de registro
 async function handleRegistroSubmit(event) {
   event.preventDefault();
-  
+
   const username = document.getElementById('username').value.trim();
   const usos = parseInt(document.getElementById('usos').value);
-  
+
   if (!username || isNaN(usos) || usos <= 0) {
     mostrarAlerta('Por favor, completa todos los campos correctamente', 'error');
     return;
   }
-  
+
   // Generar contraseña aleatoria
   const password = generarContraseñaAleatoria(5);
-  
+
   // Deshabilitar el botón mientras se procesa
   const submitBtn = document.getElementById('submitBtn');
   const originalBtnText = submitBtn.textContent;
   submitBtn.disabled = true;
   submitBtn.textContent = 'Procesando...';
-  
+
   try {
     const response = await fetch('/api/registrar', {
       method: 'POST',
@@ -283,20 +283,20 @@ async function handleRegistroSubmit(event) {
         usos
       })
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Error al registrar usuario');
     }
-    
+
     // Mostrar la contraseña generada al usuario
     mostrarAlerta(`Usuario registrado exitosamente. Contraseña generada: ${password}`, 'exito');
-    
+
     // Limpiar el formulario
     document.getElementById('username').value = '';
     document.getElementById('usos').value = '5';
-    
+
     cargarUsuarios(); // Actualizar la lista
   } catch (error) {
     mostrarAlerta(`Error: ${error.message}`, 'error');
@@ -313,14 +313,14 @@ function copiarAlPortapapeles(texto) {
   const elementoTemporal = document.createElement('textarea');
   elementoTemporal.value = texto;
   document.body.appendChild(elementoTemporal);
-  
+
   // Seleccionar y copiar
   elementoTemporal.select();
   document.execCommand('copy');
-  
+
   // Eliminar el elemento temporal
   document.body.removeChild(elementoTemporal);
-  
+
   // Mostrar notificación
   mostrarAlerta('Código copiado al portapapeles', 'exito');
 }
@@ -335,46 +335,46 @@ async function cargarUsuarios() {
   try {
     // Mostrar mensaje de carga
     document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="8" class="texto-cargando">Cargando usuarios...</td></tr>';
-    
+
     const response = await fetch('/api/registrar');
     if (!response.ok) {
       throw new Error('Error al cargar usuarios');
     }
-    
+
     const usuarios = await response.json();
-    
+
     // Crear filas para cada usuario
     const tableBody = document.getElementById('usersTableBody');
     tableBody.innerHTML = '';
-    
+
     if (usuarios.length === 0) {
       tableBody.innerHTML = '<tr><td colspan="8" class="mensaje-centrado">No hay usuarios registrados</td></tr>';
       return;
     }
-    
+
     // Ordenar usuarios por ID para mantener el orden consistente
     usuarios.sort((a, b) => a.id - b.id);
-    
+
     usuarios.forEach(usuario => {
       const row = document.createElement('tr');
-      
+
       // Formatear fechas
       // Obtener la fecha de creación completa usando las nuevas columnas
-      const fechaCompleta = usuario.fechaCreacion ? 
-        `${usuario.fechaCreacion} ${usuario.horaCreacion}` : 
+      const fechaCompleta = usuario.fechaCreacion ?
+        `${usuario.fechaCreacion} ${usuario.horaCreacion}` :
         new Date().toLocaleDateString('es-ES');
-      
+
       // Comprobar si es usuario administrador
       const esAdmin = usuario.esAdmin === true;
-      
+
       // Personalizar la visualización de usos para usuario administrador
       // Mostrar usos como valor principal para usuarios normales
       const usos = esAdmin ? '∞' : usuario.usos;
-      
+
       // Crear la clase para la fila del administrador
       const rowClass = esAdmin ? 'fila-admin' : '';
       row.className = rowClass;
-      
+
       row.innerHTML = `
         <td>${usuario.id}</td>
         <td><i class="fa-solid fa-user"></i> ${usuario.username}${esAdmin ? ' <span class="etiqueta-admin">Admin</span>' : ''}</td>
@@ -385,21 +385,21 @@ async function cargarUsuarios() {
         <td>${usuario.horaCreacion || 'N/A'}</td>
         <td>
           <div class="botones-accion">
-            ${esAdmin ? 
-              `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}" title="Editar"><i class="fa-solid fa-pencil"></i></button>
+            ${esAdmin ?
+          `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}" title="Editar"><i class="fa-solid fa-pencil"></i></button>
                <button class="boton boton-eliminar" disabled title="No se puede eliminar al administrador"><i class="fa-solid fa-trash"></i></button>
-               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}" title="Copiar Código"><i class="fa-solid fa-clipboard"></i></button>` : 
-              `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}" title="Editar"><i class="fa-solid fa-pencil"></i></button>
+               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}" title="Copiar Código"><i class="fa-regular fa-clipboard"></i></button>` :
+          `<button class="boton boton-editar" data-id="${usuario.id}" data-username="${usuario.username}" title="Editar"><i class="fa-solid fa-pencil"></i></button>
                <button class="boton boton-eliminar" data-id="${usuario.id}" data-username="${usuario.username}" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                <button class="boton boton-recargar" data-id="${usuario.id}" data-username="${usuario.username}" title="Recargar Usos"><i class="fa-solid fa-coins"></i></button>
-               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}" title="Copiar Código"><i class="fa-solid fa-clipboard"></i></button>`}
+               <button class="boton boton-copiar" data-username="${usuario.username}" data-password="${usuario.password}" title="Copiar Código"><i class="fa-regular fa-clipboard"></i></button>`}
           </div>
         </td>
       `;
-      
+
       tableBody.appendChild(row);
     });
-    
+
     // Añadir eventos a los botones de eliminar (solo para usuarios no administradores)
     document.querySelectorAll('.boton-eliminar:not([disabled])').forEach(button => {
       button.addEventListener('click', () => {
@@ -408,7 +408,7 @@ async function cargarUsuarios() {
         mostrarModalEliminacion(userId, username);
       });
     });
-    
+
     // Añadir eventos a los botones de recargar usos
     document.querySelectorAll('.boton-recargar').forEach(button => {
       button.addEventListener('click', () => {
@@ -417,12 +417,12 @@ async function cargarUsuarios() {
         mostrarModalRecarga(userId, username);
       });
     });
-    
+
     // Añadir eventos a los botones de editar
     document.querySelectorAll('.boton-editar').forEach(button => {
       button.addEventListener('click', () => {
         const userId = button.getAttribute('data-id');
-        
+
         // Obtener los datos completos del usuario para editar
         const usuario = usuarios.find(u => u.id == userId);
         if (usuario) {
@@ -430,7 +430,7 @@ async function cargarUsuarios() {
         }
       });
     });
-    
+
     // Añadir eventos a los botones de copiar código
     document.querySelectorAll('.boton-copiar').forEach(button => {
       button.addEventListener('click', () => {
@@ -440,10 +440,10 @@ async function cargarUsuarios() {
         copiarAlPortapapeles(codigo);
       });
     });
-    
+
   } catch (error) {
     console.error('Error:', error);
-    document.getElementById('usersTableBody').innerHTML = 
+    document.getElementById('usersTableBody').innerHTML =
       '<tr><td colspan="8" style="text-align:center;color:var(--color-peligro);">Error al cargar usuarios. Por favor, intenta más tarde.</td></tr>';
   }
 }
