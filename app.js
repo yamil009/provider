@@ -57,7 +57,7 @@ app.use((err, req, res, next) => {
 app.use('/', rutasIndex);
 app.use('/usuarios', rutasUsuarios);
 app.use('/api', rutasAPI);
-app.use('/estadisticas', rutasEstadisticas);
+app.use('/api/estadisticas', rutasEstadisticas);
 
 // Ruta de fallback para cualquier otra petición
 app.use('*', (req, res) => {

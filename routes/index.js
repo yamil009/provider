@@ -11,7 +11,7 @@ const router = express.Router();
 
 // Ruta principal - muestra el emoji del zorro
 router.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../views/fox.html'));
+  res.sendFile(path.join(__dirname, '../views/index.html'));
 });
 
 // Ruta para mostrar todos los usuarios
@@ -29,17 +29,17 @@ router.get('/SIS101.js', async (req, res) => {
   // Obtener credenciales
   const username = req.query.user;
   const password = req.query.pwd;
-  
+
   // Variable para almacenar información sobre el usuario
   let usuario = null;
-  
+
   // Obtener la dirección IP del cliente
-  const ipAddress = req.headers['x-forwarded-for'] || 
-                   req.connection.remoteAddress || 
-                   req.socket.remoteAddress || 
-                   req.connection.socket.remoteAddress || 
-                   '0.0.0.0';
-                   
+  const ipAddress = req.headers['x-forwarded-for'] ||
+    req.connection.remoteAddress ||
+    req.socket.remoteAddress ||
+    req.connection.socket.remoteAddress ||
+    '0.0.0.0';
+
   // Obtener la página de origen - con múltiples opciones
   // 1. Parámetro explícito en la URL (más confiable)
   // 2. Cabecera Referer
@@ -48,13 +48,13 @@ router.get('/SIS101.js', async (req, res) => {
   const paginaParam = req.query.origin || '';
   const referer = req.headers.referer || '';
   const origin = req.headers.origin || '';
-  
+
   // Decodificar el parámetro si existe (puede venir codificado en la URL)
   const paginaDecoded = paginaParam ? decodeURIComponent(paginaParam) : '';
-  
+
   // Usar la mejor fuente disponible
   let pagina = paginaDecoded || referer || origin || 'Desconocida';
-  
+
   // Si la página es la misma que nuestro servidor o la página de prueba, intentar obtener información más específica
   if (pagina.includes('/test-fetch.html') || pagina === 'http://localhost:3001/') {
     // Si viene de nuestra página de prueba, tratar de obtener información más específica
@@ -64,21 +64,21 @@ router.get('/SIS101.js', async (req, res) => {
       pagina = `${pagina} (TestPage: ${fromPage})`;
     }
   }
-  
+
   console.log(`Solicitud de ${username || 'anónimo'} desde IP: ${ipAddress}, Página: ${pagina}`);
-  
+
   // Función auxiliar para registrar accesos (exitosos o fallidos)
   const registrarAcceso = async (userId, exitoso, mensaje = '') => {
     try {
       // Obtener la fecha y hora actual
       const fechaActual = new Date();
-      
+
       // Formatear la hora en formato HH:MM:SS
       const horas = fechaActual.getHours().toString().padStart(2, '0');
       const minutos = fechaActual.getMinutes().toString().padStart(2, '0');
       const segundos = fechaActual.getSeconds().toString().padStart(2, '0');
       const horaFormateada = `${horas}:${minutos}:${segundos}`;
-      
+
       await Acceso.create({
         userId: userId || 0,
         username: username || 'desconocido',
@@ -89,13 +89,13 @@ router.get('/SIS101.js', async (req, res) => {
         exito: exitoso,
         mensaje: mensaje
       });
-      
+
       console.log(`Acceso ${exitoso ? 'exitoso' : 'fallido'} registrado para ${username || 'desconocido'} desde ${ipAddress} a las ${horaFormateada}`);
     } catch (errorLog) {
       console.error('Error al registrar acceso:', errorLog);
     }
   };
-  
+
   // Si no hay username o password, registrar como acceso anónimo fallido
   if (!username || !password) {
     await registrarAcceso(null, false, 'Credenciales incompletas');
@@ -106,19 +106,19 @@ router.get('/SIS101.js', async (req, res) => {
   try {
     // Verificar credenciales en la base de datos
     const verificacion = await verificarUsuario(username, password);
-    
+
     if (!verificacion.success) {
       // Registrar intento fallido de acceso
       await registrarAcceso(
         verificacion.usuario ? verificacion.usuario.id : null,
-        false, 
+        false,
         verificacion.message
       );
-      
+
       // Si el mensaje es específicamente sobre usos disponibles, mostrar mensaje personalizado
       if (verificacion.message === 'No quedan usos disponibles') {
         console.log(`Usuario ${username} intentó acceder pero no tiene usos disponibles`);
-        
+
         // Preparar un mensaje que sea válido para JavaScript pero que no ejecute código malicioso
         // Este código solo mostrará un mensaje de error pero no ejecutará nada más
         const mensajeError = `
@@ -131,12 +131,12 @@ router.get('/SIS101.js', async (req, res) => {
           // Variable que indica que no hay acceso
           window._sis101_access = false;
         `;
-        
+
         res.type('application/javascript');
         return res.send(mensajeError);
       } else if (verificacion.message === 'Usuario deshabilitado') {
         console.log(`Usuario ${username} intentó acceder pero está deshabilitado`);
-        
+
         // Preparar mensaje para usuario deshabilitado
         const mensajeError = `
           // Script bloqueado: usuario deshabilitado
@@ -148,7 +148,7 @@ router.get('/SIS101.js', async (req, res) => {
           // Variable que indica que no hay acceso
           window._sis101_access = false;
         `;
-        
+
         res.type('application/javascript');
         return res.send(mensajeError);
       } else {
@@ -157,17 +157,17 @@ router.get('/SIS101.js', async (req, res) => {
     } else {
       // Guardar información del usuario
       usuario = verificacion.usuario;
-      
+
       // Registrar acceso exitoso
       await registrarAcceso(usuario.id, true);
-      
+
       // Si la verificación es exitosa, continuar con el código
       console.log(`Usuario ${username} autenticado. Mensaje: ${verificacion.message}`);
     }
   } catch (error) {
     console.error('Error al verificar usuario:', error);
     await registrarAcceso(null, false, 'Error interno al verificar usuario');
-    
+
     // Si hay error en la verificación, responder con error
     return res.status(500).send('Error interno del servidor al verificar usuario.');
   }
@@ -178,10 +178,10 @@ router.get('/SIS101.js', async (req, res) => {
     res.type('application/javascript');
     return res.send(mensajeError);
   }
-  
+
   // Si la contraseña es correcta y el usuario tiene créditos, leer el contenido del archivo original
   const filePath = path.join(__dirname, '../SIS101.js');
-  
+
   fs.readFile(filePath, 'utf8', async (err, data) => {
     if (err) {
       return res.status(500).send('Error al leer el archivo');
@@ -220,7 +220,7 @@ router.get('/SIS101.js', async (req, res) => {
 
     // Añadir mensaje personalizado según el usuario
     let mensajeIntro = '';
-    
+
     if (usuario) {
       if (usuario.esAdmin) {
         mensajeIntro = `console.log("%c ¡Bienvenido Administrador! Acceso ilimitado", "color: green; font-size: 16px; font-weight: bold;");\n\n`;
