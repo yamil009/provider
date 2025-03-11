@@ -1,91 +1,55 @@
 /**
- * Modelo de Usuario para la base de datos
+ * Modelo de Usuario
  */
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
+const bcrypt = require('bcrypt');
 
-// Definir el modelo de Usuario
-const User = sequelize.define('User', {
+const User = sequelize.define('usuarios', {
   id: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     primaryKey: true,
     autoIncrement: true
   },
   username: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(50),
     allowNull: false,
-    unique: true,
-    validate: {
-      notEmpty: true
-    }
+    unique: true
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      notEmpty: true
-    }
+    allowNull: false
   },
   usos: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 5, // Número predeterminado de usos
-    validate: {
-      min: 0
-    }
+    defaultValue: 15
   },
   activo: {
     type: DataTypes.BOOLEAN,
-    allowNull: false,
     defaultValue: true
   },
   esAdmin: {
     type: DataTypes.BOOLEAN,
-    allowNull: false,
     defaultValue: false
   },
+  // Campos personalizados para fechas en lugar de timestamps automáticos
   fechaCreacion: {
-    type: DataTypes.DATEONLY,  // Solo almacena la fecha sin la hora
-    allowNull: false,
-    defaultValue: DataTypes.NOW
+    type: DataTypes.DATEONLY,
+    allowNull: true
   },
   horaCreacion: {
-    type: DataTypes.STRING(8),  // Formato HH:MM:SS
-    allowNull: false,
-    defaultValue: '00:00:00'
+    type: DataTypes.STRING(8),
+    allowNull: true
   }
 }, {
-  tableName: 'usuarios', // Especificamos explícitamente el nombre de la tabla
-  timestamps: false      // Desactivamos los timestamps automáticos
-  // Se han eliminado los hooks para permitir la administración directa de contraseñas
+  timestamps: false, // Desactivar timestamps automáticos
+  tableName: 'usuarios' // Nombre explícito de la tabla
 });
 
-// Método para verificar contraseña (ahora compara directamente las cadenas)
-User.prototype.verificarPassword = async function(passwordIngresada) {
-  return passwordIngresada === this.password;
-};
-
-// Método para disminuir el número de usos
-User.prototype.disminuirUsos = async function() {
-  // No disminuir los usos si es un administrador
-  if (this.esAdmin) {
-    return true;
-  }
-  
-  // No disminuir si ya no tiene usos disponibles
-  if (this.usos <= 0) {
-    return false;
-  }
-  
-  // Disminuir usos
-  this.usos -= 1;
-  await this.save();
-  return true;
-};
-
-// Método para verificar si aún tiene usos disponibles
-User.prototype.tieneUsos = function() {
-  return this.esAdmin || this.usos > 0;
+// Método para validar contraseña
+User.prototype.validPassword = async function(password) {
+  return await bcrypt.compare(password, this.password);
 };
 
 module.exports = User;

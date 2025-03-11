@@ -1,12 +1,12 @@
 /**
- * Modelo de Acceso para registrar el uso de SIS101.js
+ * Modelo de Acceso
  */
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 const User = require('./User');
 
 // Definir el modelo de Acceso
-const Acceso = sequelize.define('Acceso', {
+const Acceso = sequelize.define('accesos', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -28,6 +28,22 @@ const Acceso = sequelize.define('Acceso', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  fechaAcceso: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
+  },
+  horaAcceso: {
+    type: DataTypes.STRING(8),
+    allowNull: false
+  },
+  dispositivo: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  navegador: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   pagina: {
     type: DataTypes.STRING,
     allowNull: true,
@@ -37,16 +53,6 @@ const Acceso = sequelize.define('Acceso', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: true
-  },
-  fechaAcceso: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW
-  },
-  horaAcceso: {
-    type: DataTypes.STRING(8),  // Formato HH:MM:SS
-    allowNull: false,
-    defaultValue: '00:00:00'
   },
   mensaje: {
     type: DataTypes.STRING,
