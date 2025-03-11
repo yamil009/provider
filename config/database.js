@@ -9,38 +9,28 @@ const config = require('./config');
 const isRailway = !!process.env.RAILWAY_SERVICE_NAME;
 console.log(`¿Entorno Railway detectado? ${isRailway ? 'SÍ' : 'NO'}`);
 
-// Mostrar las variables críticas para debugging
-if (isRailway) {
-  console.log('Variables críticas para la conexión:');
-  console.log('MYSQL_ROOT_PASSWORD definida:', !!process.env.MYSQL_ROOT_PASSWORD);
-  console.log('MYSQLHOST:', process.env.MYSQLHOST);
-  console.log('MYSQLPORT:', process.env.MYSQLPORT);
-  console.log('MYSQLUSER:', process.env.MYSQLUSER);
-  console.log('MYSQLDATABASE:', process.env.MYSQLDATABASE);
-}
-
 // Determinar opciones de conexión
 let sequelize;
 
-// RAILWAY: En Railway, conectamos directamente al servicio MySQL vinculado
+// RAILWAY: En Railway, conectamos directamente a MySQL usando las variables proporcionadas
 if (isRailway) {
   console.log('Usando configuración de Railway para base de datos MySQL');
   
-  // Usar "mysql" como host interno en Railway cuando está vinculado
-  const DB_HOST = 'mysql';  // Nombre del servicio MySQL vinculado en Railway
-  const DB_PORT = '3306';
-  const DB_USER = 'root';
-  const DB_PASSWORD = process.env.MYSQL_ROOT_PASSWORD;
-  const DB_NAME = 'railway';
+  // Usar exactamente los valores de las variables de entorno que vemos en Railway
+  const DB_HOST = process.env.MYSQLHOST || 'mysql.railway.internal';
+  const DB_PORT = process.env.MYSQLPORT || '3306';
+  const DB_USER = process.env.MYSQLUSER || 'root';
+  const DB_PASSWORD = process.env.MYSQLPASSWORD || process.env.MYSQL_ROOT_PASSWORD || '';
+  const DB_NAME = process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || 'railway';
   
   // Mostrar configuración (sin la contraseña)
-  console.log(`Conexión Railway a MySQL (interna):
+  console.log(`Conexión a MySQL:
   Host: ${DB_HOST}
   Puerto: ${DB_PORT}
   Usuario: ${DB_USER}
-  Base de datos: ${DB_NAME}`);
+  Base de datos: ${DB_NAME}
+  Password definida: ${!!DB_PASSWORD}`);
   
-  // Crear instancia Sequelize con parámetros para Railway
   sequelize = new Sequelize(
     DB_NAME,
     DB_USER,

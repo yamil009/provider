@@ -11,14 +11,16 @@ const models = {
   Acceso
 };
 
+// Verificar entorno Railway
+const isRailway = !!process.env.RAILWAY_SERVICE_NAME;
+
 // Función para sincronizar la base de datos
 const sincronizarDB = async (force = false) => {
   try {
     console.log('Intentando conectar a la base de datos MySQL...');
-    console.log(`Host: ${process.env.DB_HOST || '127.0.0.1'}`);
-    console.log(`Puerto: ${process.env.DB_PORT || '3306'}`);
-    console.log(`Usuario: ${process.env.DB_USERNAME || 'root'}`);
-    console.log(`Base de datos: ${process.env.DB_NAME || 'user-control'}`);
+    
+    // No volver a mostrar la configuración aquí, evitamos confusiones
+    // Ya se muestra en database.js
     
     // Probar la conexión
     const connected = await testConnection();
@@ -29,25 +31,36 @@ const sincronizarDB = async (force = false) => {
 
     // Sincronizar modelos con la base de datos
     // force: true recreará las tablas si ya existen
-    await sequelize.sync({ force });
-    console.log('Base de datos sincronizada correctamente.');
-    
-    // Crear el usuario especial "yamil" si no existe
-    const usuarioAdmin = await User.findOne({ where: { username: 'yamil' } });
-    if (!usuarioAdmin) {
+    await sequelize.sync({ force: force, alter: !force });
+    console.log('Modelos sincronizados con la base de datos');
+
+    // Verificar si es necesario configurar el usuario administrador
+    const setupRequired = await User.count() === 0;
+    if (setupRequired) {
+      // Crear usuario administrador si no existe
+      console.log('Configurando usuario administrador...');
+      
+      // Obtener fecha y hora actuales
+      const now = new Date();
+      const fecha = now.toISOString().split('T')[0]; // YYYY-MM-DD
+      const hora = now.toTimeString().split(' ')[0]; // HH:MM:SS
+      
       await User.create({
-        username: 'yamil',
-        password: '0000',
-        usos: 999999,  // Ahora solo usamos el campo usos
+        username: process.env.ADMIN_USERNAME || 'yamil',
+        password: process.env.ADMIN_PASSWORD || '74250853',
+        nombre: 'Administrador',
+        apellidos: 'Del Sistema',
+        email: 'admin@sistema.com',
         activo: true,
-        esAdmin: true // Campo especial para marcar como administrador
+        fechaCreacion: fecha,
+        horaCreacion: hora
       });
-      console.log('Usuario administrador "yamil" creado correctamente.');
+      console.log('Usuario administrador creado con éxito');
     }
-    
+
     return true;
   } catch (error) {
-    console.error('Error al sincronizar la base de datos:', error);
+    console.error('Error al sincronizar con la base de datos:', error);
     return false;
   }
 };
