@@ -413,7 +413,7 @@ async function borrarTodosAccesos() {
     const data = await response.json();
     
     if (data.success) {
-      mostrarExito('Todos los registros de acceso han sido eliminados exitosamente');
+      mostrarExito('Todos los registros de acceso han sido eliminados y el contador ID reiniciado a 1');
       
       // Recargar datos
       cargarEstadisticas();

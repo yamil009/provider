@@ -116,11 +116,17 @@ router.get('/accesos', async (req, res) => {
 // Ruta para eliminar todos los accesos
 router.delete('/accesos', async (req, res) => {
   try {
+    const sequelize = Acceso.sequelize;
+
+    // 1. Eliminar todos los registros
     await Acceso.destroy({ where: {} });
+    
+    // 2. Reiniciar el contador de ID a 1 mediante SQL directo
+    await sequelize.query("ALTER TABLE accesos AUTO_INCREMENT = 1;");
     
     res.json({
       success: true,
-      message: 'Todos los registros de acceso han sido eliminados'
+      message: 'Todos los registros de acceso han sido eliminados y el contador ID reiniciado'
     });
   } catch (error) {
     console.error('Error al eliminar accesos:', error);
