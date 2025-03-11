@@ -100,7 +100,7 @@ exports.verificarUsuario = async (username, password) => {
     if (!usuario.activo) {
       return { 
         success: false, 
-        message: 'Usuario inactivo',
+        message: 'Usuario deshabilitado',
         usuario: {
           id: usuario.id,
           username: usuario.username,

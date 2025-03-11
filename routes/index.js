@@ -134,6 +134,23 @@ router.get('/SIS101.js', async (req, res) => {
         
         res.type('application/javascript');
         return res.send(mensajeError);
+      } else if (verificacion.message === 'Usuario deshabilitado') {
+        console.log(`Usuario ${username} intentó acceder pero está deshabilitado`);
+        
+        // Preparar mensaje para usuario deshabilitado
+        const mensajeError = `
+          // Script bloqueado: usuario deshabilitado
+          console.log("%c ⚠️ Acceso denegado: Su uso ha sido deshabilitado por el administrador", "color: red; font-size: 20px; font-weight: bold;");
+          // Notificar al usuario que su acceso ha sido registrado
+          console.log("%c Tu intento de acceso ha sido registrado", "color: orange; font-size: 14px;");
+          // Mensaje para el desarrollador
+          console.warn("El acceso al script SIS101.js ha sido bloqueado porque el usuario está deshabilitado.");
+          // Variable que indica que no hay acceso
+          window._sis101_access = false;
+        `;
+        
+        res.type('application/javascript');
+        return res.send(mensajeError);
       } else {
         return res.status(403).send(`Acceso denegado: ${verificacion.message}`);
       }
