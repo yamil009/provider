@@ -21,8 +21,11 @@ async function handleEditSubmit(event) {
   // Recopilar datos del formulario
   const username = document.getElementById('editUsername').value.trim();
   const password = document.getElementById('editPassword').value.trim();
-  const usos = parseInt(document.getElementById('editUsos').value);
-  const activo = document.getElementById('editActivo').checked;
+  const activoTrue = document.getElementById('editActivoTrue').checked;
+  const activoFalse = document.getElementById('editActivoFalse').checked;
+  
+  // Determinar estado según el botón de radio seleccionado
+  const activo = activoTrue ? true : false;
   
   // Validaciones básicas
   if (!username) {
@@ -30,16 +33,15 @@ async function handleEditSubmit(event) {
     return;
   }
   
-  if (isNaN(usos) || usos < 0) {
-    mostrarAlerta('El número de usos debe ser un valor positivo o cero', 'error');
+  if (!activoTrue && !activoFalse) {
+    mostrarAlerta('Debe seleccionar un estado para el usuario', 'error');
     return;
   }
   
   // Construir el objeto de datos para la actualización
   const datosActualizacion = {
     username,
-    activo,
-    usos
+    activo
   };
   
   // Solo incluir la contraseña si se ha ingresado una nueva

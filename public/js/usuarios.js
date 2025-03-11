@@ -108,9 +108,11 @@ function mostrarModalEdicion(usuario) {
   
   // Llenar el formulario con los datos actuales
   document.getElementById('editUsername').value = usuario.username;
-  document.getElementById('editPassword').value = usuario.password;
-  document.getElementById('editUsos').value = usuario.usos;
-  document.getElementById('editActivo').checked = usuario.activo;
+  document.getElementById('editPassword').value = ''; // Vacío para mantener la actual
+  
+  // Establecer el estado del usuario en los botones de radio
+  document.getElementById('editActivoTrue').checked = usuario.activo;
+  document.getElementById('editActivoFalse').checked = !usuario.activo;
   
   // Mostrar el nombre de usuario en el título
   document.getElementById('editUserTitle').textContent = usuario.username;
@@ -194,10 +196,9 @@ async function handleEditConfirm() {
   
   const username = document.getElementById('editUsername').value.trim();
   const password = document.getElementById('editPassword').value.trim();
-  const usos = parseInt(document.getElementById('editUsos').value);
-  const activo = document.getElementById('editActivo').checked;
+  const activo = document.getElementById('editActivoTrue').checked;
   
-  if (!username || !password || isNaN(usos) || usos <= 0) {
+  if (!username) {
     mostrarAlerta('Por favor, ingrese todos los campos correctamente', 'error');
     return;
   }
@@ -211,7 +212,6 @@ async function handleEditConfirm() {
       body: JSON.stringify({
         username,
         password,
-        usos,
         activo
       })
     });
@@ -380,7 +380,7 @@ async function cargarUsuarios() {
         <td>${usuario.username}${esAdmin ? ' <span class="etiqueta-admin">Admin</span>' : ''}</td>
         <td>${usuario.password}</td>
         <td>${usos}</td>
-        <td><span class="estado ${usuario.activo ? 'activo' : 'inactivo'}">${usuario.activo ? 'Activo' : 'Inactivo'}</span></td>
+        <td><span class="estado ${usuario.activo ? 'activo' : 'inactivo'}">${usuario.activo ? 'Habilitado' : 'Deshabilitado'}</span></td>
         <td>${usuario.fechaCreacion || 'N/A'}</td>
         <td>${usuario.horaCreacion || 'N/A'}</td>
         <td>
